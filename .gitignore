@@ -1,0 +1,20 @@
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Dependencias (no se necesitan: todo va por CDN)
+node_modules/
+
+# Archivos de prueba / grabaciones
+*.webm
+*.wav
+*.ogg
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Configuración local del asistente
+.claude/

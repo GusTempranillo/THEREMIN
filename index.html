@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Theremin Web — cámara + Web Audio</title>
+  <meta name="description" content="Theremin virtual controlado por la webcam: visión por computador (MediaPipe) + síntesis Web Audio. Todo en tu dispositivo." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Pantalla de arranque (gesto del usuario => desbloquea audio + cámara) -->
+  <div id="startScreen" class="start-screen">
+    <div class="start-card">
+      <h1>Theremin <span class="accent">Web</span></h1>
+      <p class="tagline">Toca con las manos en el aire. La cámara ve; el navegador suena.</p>
+      <ul class="howto">
+        <li><strong>Sube/baja</strong> una mano para cambiar el <strong>tono</strong>.</li>
+        <li><strong>Abre/cierra</strong> la pinza pulgar–índice para el <strong>volumen</strong>.</li>
+        <li>Mano <strong>derecha</strong> = agudos · mano <strong>izquierda</strong> = graves.</li>
+      </ul>
+      <button id="startBtn" class="start-btn">EMPEZAR</button>
+      <p id="startStatus" class="start-status"></p>
+      <p class="privacy">🔒 El vídeo se procesa en tu dispositivo y nunca se sube a ningún servidor.</p>
+    </div>
+  </div>
+
+  <!-- Aplicación -->
+  <main id="app" class="app hidden">
+    <header class="topbar">
+      <h2 class="brand">Theremin <span class="accent">Web</span></h2>
+      <p class="privacy-inline">🔒 Vídeo 100% on-device · nunca se sube nada.</p>
+    </header>
+
+    <section class="stage">
+      <div class="video-wrap">
+        <video id="video" playsinline muted></video>
+        <canvas id="overlay"></canvas>
+      </div>
+
+      <!-- Lecturas por mano -->
+      <div class="readouts">
+        <div class="readout" id="readout-left" data-side="left">
+          <div class="readout-head">
+            <span class="hand-dot left"></span>
+            <span class="hand-label">Mano izquierda</span>
+            <span class="hand-state" id="state-left">—</span>
+          </div>
+          <div class="note" id="note-left">—</div>
+          <div class="freq" id="freq-left">— Hz</div>
+          <div class="bar-group">
+            <div class="bar-row"><span>Tono</span><div class="bar"><i id="pitchbar-left"></i></div></div>
+            <div class="bar-row"><span>Vol</span><div class="bar vol"><i id="volbar-left"></i></div></div>
+          </div>
+          <div class="vol-pct" id="vol-left">0%</div>
+        </div>
+
+        <div class="readout" id="readout-right" data-side="right">
+          <div class="readout-head">
+            <span class="hand-dot right"></span>
+            <span class="hand-label">Mano derecha</span>
+            <span class="hand-state" id="state-right">—</span>
+          </div>
+          <div class="note" id="note-right">—</div>
+          <div class="freq" id="freq-right">— Hz</div>
+          <div class="bar-group">
+            <div class="bar-row"><span>Tono</span><div class="bar"><i id="pitchbar-right"></i></div></div>
+            <div class="bar-row"><span>Vol</span><div class="bar vol"><i id="volbar-right"></i></div></div>
+          </div>
+          <div class="vol-pct" id="vol-right">0%</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Controles -->
+    <section class="controls">
+      <div class="control">
+        <label>Modo</label>
+        <div class="seg" id="modeToggle" role="group">
+          <button class="seg-btn active" data-mode="duo">Dúo</button>
+          <button class="seg-btn" data-mode="classic">Clásico</button>
+        </div>
+      </div>
+
+      <div class="control">
+        <label for="scaleSelect">Escala</label>
+        <select id="scaleSelect">
+          <option value="free">Libre</option>
+          <option value="chromatic">Cromática</option>
+          <option value="pentatonic" selected>Pentatónica</option>
+          <option value="major">Mayor</option>
+          <option value="minor">menor</option>
+        </select>
+      </div>
+
+      <div class="control">
+        <label for="tonicSelect">Tónica</label>
+        <select id="tonicSelect"></select>
+      </div>
+
+      <div class="control">
+        <label for="carrierSelect">Onda</label>
+        <select id="carrierSelect">
+          <option value="sine" selected>Senoidal (cálida)</option>
+          <option value="triangle">Triangular</option>
+        </select>
+      </div>
+
+      <div class="control toggles">
+        <label class="chk"><input type="checkbox" id="warmthChk" checked /> 2.º osc</label>
+        <label class="chk"><input type="checkbox" id="filterChk" checked /> Filtro</label>
+      </div>
+
+      <div class="control">
+        <label for="reverbRange">Reverb</label>
+        <input id="reverbRange" type="range" min="0" max="100" value="28" />
+      </div>
+
+      <div class="control rec">
+        <label>Grabación</label>
+        <div class="rec-row">
+          <button id="recBtn" class="rec-btn" title="Grabar audio">●</button>
+          <span id="recTimer" class="rec-timer">00:00</span>
+        </div>
+        <span id="recStatus" class="rec-status"></span>
+      </div>
+    </section>
+
+    <!-- Resultado de grabación -->
+    <section id="recResult" class="rec-result hidden">
+      <audio id="recPlayer" controls></audio>
+      <div class="rec-actions">
+        <a id="dlWebm" class="dl-btn" download="theremin.webm">Descargar WebM</a>
+        <a id="dlWav" class="dl-btn" download="theremin.wav">Descargar WAV</a>
+        <button id="shareBtn" class="dl-btn hidden">Compartir</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
