@@ -10,27 +10,61 @@ buscando un timbre cálido y expresivo cercano a un theremin analógico.
 - 🎚️ **Tono logarítmico continuo** (glissando auténtico) en 2 octavas por mano.
 - 🎯 **Modo escala "afina al parar":** mientras mueves la mano el tono es libre;
   cuando te detienes, se atrae suavemente a la nota de la escala más cercana.
-- 🔊 **Sonido cálido:** vibrato con entrada retardada (0.55 s), 2.º oscilador de
-  calidez, filtro paso-bajo y envolvente suave (sin clics).
+- 🔊 **Tres perfiles DSP:** RCA/Rockmore, RCA con Cabinet 1929 modelado y
+  Ciencia ficción moderna.
 - 🎙️ **Grabación SOLO audio** (WebM/Opus + descarga opcional en WAV).
-- 🌌 **Reverb procedural y limitador** para una mezcla más cálida y segura.
+- 🌌 **Hall amortiguada, eco y limitador de último recurso** con headroom.
 - 🌑 Interfaz minimalista en modo oscuro.
 
 ## Cómo funciona (controles)
 
 | Acción | Efecto |
 | --- | --- |
-| Subir / bajar una mano | Cambia el **tono** (arriba = agudo) |
+| Dúo: subir / bajar una mano | Cambia el **tono** (arriba = agudo) |
+| Clásico histórico: acercar la derecha a la antena virtual | Sube el **tono** |
 | Abrir / cerrar pinza pulgar–índice | Cambia el **volumen** |
 | Mano **derecha** | Rango **agudo** (C4–C6) |
 | Mano **izquierda** | Rango **grave** (C2–C4) |
 
 - **Modo Dúo** (por defecto): cada mano es una voz independiente (tono + volumen).
-- **Modo Clásico**: una sola voz. Mano derecha = tono (C3–C6); mano izquierda =
-  volumen según su altura. Más fiel al theremin real y más fácil de tocar.
-- **Escala**: Libre · Cromática · **Pentatónica** (por defecto) · Mayor · menor,
+- **Modo Clásico**: una sola voz. Mano derecha = tono; mano izquierda = volumen
+  según su altura. La extensión y dirección se eligen en Configuración
+  interpretativa.
+- **Escala**: **Libre** (por defecto) · Cromática · Pentatónica · Mayor · menor,
   con **tónica** seleccionable (Do por defecto).
-- **Onda**: senoidal (cálida) o triangular. Toggles para 2.º oscilador y filtro.
+- **Sonido**:
+  - **Clásico — RCA/Rockmore:** banco de ondas interpoladas por registro;
+    grave rico tipo cello, medio vocal y agudo progresivamente sinusoidal.
+    No añade vibrato automático.
+  - **RCA + Cabinet 1929:** la misma voz mediante un modelo de amplificador,
+    altavoz electrodinámico y caja. Es una aproximación DSP hasta disponer de
+    una respuesta al impulso medida de un RCA 106 real.
+  - **Ciencia ficción moderna:** pulso redondeado brillante, vibrato retardado,
+    hall con pre-delay y eco amortiguado.
+  - **Órbita prismática:** perfil experimental con espectro hueco, quinta y
+    octava flotantes, modulación tímbrica lenta y eco musical. Permanece
+    afinable y sensible a la dinámica de las manos.
+
+### Configuración interpretativa
+
+El modo Clásico ofrece perfiles de ejecución independientes del timbre:
+
+- **RCA 1929:** Si2–Fa6, aproximadamente 3,5 octavas, control horizontal tipo
+  antena, 14 ms de suavizado de tono y 55 ms de respuesta de volumen. El límite
+  superior sigue la especificación RCA de aproximadamente 1400 Hz; el inferior
+  se deriva de la extensión documentada.
+- **Rockmore:** Do2–Do7, cinco octavas, control horizontal, 10 ms de suavizado y
+  18 ms de volumen para permitir articulación rápida.
+- **Webcam cómoda:** Do3–Do6, tres octavas, control vertical y más suavizado.
+- **Personalizado:** frecuencias mínima/máxima, eje del tono y tiempos de
+  respuesta configurables. La extensión puede aumentarse o reducirse en pasos
+  de media octava mediante deslizador o botones −/+; el límite superior se
+  recalcula conservando la frecuencia mínima. El panel muestra notas, octavas
+  reales y valida el rango.
+
+Los extremos exactos del instrumento personal de Clara Rockmore dependían de
+su afinación; Do2–Do7 es una normalización musical de sus cinco octavas, no una
+afirmación de que estuviera permanentemente ajustado a esas dos notas.
 
 ## Probar en local
 
@@ -76,8 +110,8 @@ cámara. Verás el vídeo espejado con el overlay de landmarks y oirás las voce
     ├── oneEuro.js       # filtro One Euro (suavizado de entrada)
     ├── mapping.js       # landmarks → frecuencia (log) y volumen (pinza)
     ├── scale.js         # escalas + afinación "afina al parar"
-    ├── thereminVoice.js # grafo Web Audio por voz
-    ├── audioEngine.js   # AudioContext, mezcla, gestión de voces
+    ├── thereminVoice.js # wavetables por registro, vibrato y VCA
+    ├── audioEngine.js   # mezcla, Cabinet 1929, hall, eco y salida
     ├── recorder.js      # grabación de audio + export WAV
     └── ui.js            # overlay, lecturas, barras, controles
 ```
@@ -91,8 +125,10 @@ motor DSP y la robustez de tracking de la primera versión:
 - timestamps monotónicos y detección sincronizada con frames de vídeo;
 - asignación por posición en pantalla, independiente de la interpretación de
   handedness de cada cámara;
-- seno, triángulo y segundo armónico con saturación suave sobremuestreada;
-- vibrato en cents, filtro dinámico, reverb de convolución y limitador;
+- seis wavetables RCA/Rockmore con crossfade equal-power por registro;
+- fuente Sci-Fi band-limited y saturación asimétrica sobremuestreada;
+- Cabinet 1929 modelado como etapa de salida independiente;
+- vibrato en cents, filtros formantes, hall, eco y limitador de seguridad;
 - modo Dúo, modo Clásico, escalas, afinación suave y grabación sólo de audio.
 
 La configuración local de Claude está excluida mediante `.gitignore` y no debe

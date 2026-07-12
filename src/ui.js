@@ -34,10 +34,23 @@ export class UI {
       modeToggle: document.getElementById("modeToggle"),
       scaleSelect: document.getElementById("scaleSelect"),
       tonicSelect: document.getElementById("tonicSelect"),
-      carrierSelect: document.getElementById("carrierSelect"),
-      warmthChk: document.getElementById("warmthChk"),
-      filterChk: document.getElementById("filterChk"),
+      soundPresetSelect: document.getElementById("soundPresetSelect"),
+      presetDescription: document.getElementById("presetDescription"),
       reverbRange: document.getElementById("reverbRange"),
+      performancePresetSelect: document.getElementById("performancePresetSelect"),
+      pitchMinHz: document.getElementById("pitchMinHz"),
+      pitchMaxHz: document.getElementById("pitchMaxHz"),
+      octaveSpanRange: document.getElementById("octaveSpanRange"),
+      octaveSpanValue: document.getElementById("octaveSpanValue"),
+      octaveDownBtn: document.getElementById("octaveDownBtn"),
+      octaveUpBtn: document.getElementById("octaveUpBtn"),
+      pitchAxisSelect: document.getElementById("pitchAxisSelect"),
+      pitchGlideRange: document.getElementById("pitchGlideRange"),
+      pitchGlideValue: document.getElementById("pitchGlideValue"),
+      volumeResponseRange: document.getElementById("volumeResponseRange"),
+      volumeResponseValue: document.getElementById("volumeResponseValue"),
+      performanceDescription: document.getElementById("performanceDescription"),
+      performanceStatus: document.getElementById("performanceStatus"),
       recBtn: document.getElementById("recBtn"),
       recTimer: document.getElementById("recTimer"),
       recStatus: document.getElementById("recStatus"),
@@ -93,6 +106,30 @@ export class UI {
   setStartStatus(text, isError = false) {
     this.el.startStatus.textContent = text;
     this.el.startStatus.classList.toggle("error", isError);
+  }
+
+  setPresetDescription(text) {
+    this.el.presetDescription.textContent = text || "";
+  }
+
+  setPerformancePanel(presetKey, preset) {
+    this.el.performancePresetSelect.value = presetKey;
+    this.el.pitchMinHz.value = preset.minHz.toFixed(2);
+    this.el.pitchMaxHz.value = preset.maxHz.toFixed(2);
+    const octaves = Math.log2(preset.maxHz / preset.minHz);
+    this.el.octaveSpanRange.value = String(Math.round(octaves * 2) / 2);
+    this.el.octaveSpanValue.textContent = `${octaves.toFixed(1).replace(".", ",")} oct`;
+    this.el.pitchAxisSelect.value = preset.axis;
+    this.el.pitchGlideRange.value = String(preset.pitchGlideMs);
+    this.el.volumeResponseRange.value = String(preset.volumeResponseMs);
+    this.el.pitchGlideValue.textContent = `${preset.pitchGlideMs} ms`;
+    this.el.volumeResponseValue.textContent = `${preset.volumeResponseMs} ms`;
+    this.el.performanceDescription.textContent = preset.description;
+  }
+
+  setPerformanceStatus(text, isError = false) {
+    this.el.performanceStatus.textContent = text || "";
+    this.el.performanceStatus.classList.toggle("error", isError);
   }
 
   // --- Dibujo del overlay ----------------------------------------------------

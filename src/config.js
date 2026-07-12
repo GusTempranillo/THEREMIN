@@ -32,6 +32,53 @@ export const PITCH_RANGE = {
   classic: { fBase: 130.81, octaves: 3 },
 };
 
+// --- Extensión y respuesta del modo Clásico --------------------------------
+// RCA documentó unas 3,5 octavas y un límite superior próximo a 1400 Hz. El
+// límite inferior de 123,47 Hz se deriva de esa extensión (aprox. Si2–Fa6).
+// El instrumento personal de Clara Rockmore alcanzaba unas cinco octavas; sus
+// extremos exactos dependían de afinación, por lo que usamos Do2–Do7 como rango
+// musical reproducible y claramente identificable.
+export const PERFORMANCE_PRESETS = {
+  rca1929: {
+    label: "RCA 1929 · Si2–Fa6 (≈3,5 oct)",
+    minHz: 123.47,
+    maxHz: 1396.91,
+    axis: "x",
+    pitchGlideMs: 14,
+    volumeResponseMs: 55,
+    description: "Extensión RCA documentada; campo horizontal y volumen deliberadamente más amortiguado.",
+  },
+  rockmore: {
+    label: "Rockmore · Do2–Do7 (5 oct)",
+    minHz: 65.41,
+    maxHz: 2093.0,
+    axis: "x",
+    pitchGlideMs: 10,
+    volumeResponseMs: 18,
+    description: "Cinco octavas y articulación rápida para legato, vibrato manual y staccato.",
+  },
+  comfortable: {
+    label: "Webcam cómoda · Do3–Do6 (3 oct)",
+    minHz: 130.81,
+    maxHz: 1046.5,
+    axis: "y",
+    pitchGlideMs: 24,
+    volumeResponseMs: 35,
+    description: "Menor sensibilidad espacial y control vertical, más fácil con cámaras ruidosas.",
+  },
+  custom: {
+    label: "Personalizado",
+    minHz: 123.47,
+    maxHz: 1396.91,
+    axis: "x",
+    pitchGlideMs: 14,
+    volumeResponseMs: 30,
+    description: "Extensión, dirección y respuesta definidas por el intérprete.",
+  },
+};
+
+export const DEFAULT_PERFORMANCE_PRESET = "rca1929";
+
 // --- Mapeo de volumen (pinza pulgar–índice) ----------------------------------
 export const VOLUME = {
   // Distancia pinza normalizada por escala invariante al tamaño de la mano
@@ -50,22 +97,64 @@ export const SCALE_TUNE = {
   attractTimeConstant: 0.045, // suavizado del factor s (histéresis, ~80–150 ms efectivos)
 };
 
-// --- Motor de audio: defaults VALIDADOS de la voz ----------------------------
-export const VOICE = {
-  carrier: { type: "sine", gain: 0.82 },         // oscilador portador
-  warmth:  { type: "triangle", detuneCents: -4, mix: 0.22, enabled: true }, // 2.º osc (calidez)
-  vibrato: {
-    rateHz: 5.5,        // frecuencia del LFO
-    depthCents: 22,     // profundidad (se convierte a Hz multiplicativamente)
-    onsetDelay: 0.55,   // entrada retardada (s) tras superar el umbral de silencio
-    onsetTimeConstant: 0.25, // suavidad de la subida/bajada de la profundidad
+// --- Perfiles de sonido -----------------------------------------------------
+// El cabinet es una etapa de salida: "cabinet1929" reutiliza la voz RCA y
+// añade la coloración del amplificador, altavoz y caja históricos modelados.
+export const SOUND_PRESETS = {
+  rca: {
+    label: "Clásico — RCA/Rockmore",
+    description: "Grave de cello, medio vocal y agudo casi sinusoidal.",
+    voiceProfile: "rca",
+    cabinet: false,
+    automaticVibrato: false,
+    glideTimeConstant: 0.012,
+    gainTimeConstant: 0.018,
+    reverb: 0.04,
+    delay: 0,
   },
-  filter: { frequency: 2200, Q: 0.7, enabled: true }, // BiquadFilter paso-bajo
-  glideTimeConstant: 0.06,  // perilla fluidez/latencia del tono (setTargetAtTime)
-  gainTimeConstant: 0.05,   // suavizado de la envolvente (sin clics)
-  silenceThreshold: 0.001,  // por debajo, la voz se considera en silencio
-  masterGain: 0.9,          // ganancia maestra de mezcla
+  cabinet1929: {
+    label: "RCA + Cabinet 1929",
+    description: "Voz RCA a través de amplificador, altavoz y caja modelados.",
+    voiceProfile: "rca",
+    cabinet: true,
+    automaticVibrato: false,
+    glideTimeConstant: 0.012,
+    gainTimeConstant: 0.022,
+    reverb: 0.10,
+    delay: 0,
+  },
+  scifi: {
+    label: "Ciencia ficción moderna",
+    description: "Pulso brillante, vibrato retardado, hall y eco espacial.",
+    voiceProfile: "scifi",
+    cabinet: false,
+    automaticVibrato: true,
+    vibratoRateHz: 5.8,
+    vibratoDepthCents: 34,
+    vibratoOnsetDelay: 0.45,
+    vibratoOnsetTimeConstant: 0.24,
+    glideTimeConstant: 0.065,
+    gainTimeConstant: 0.045,
+    reverb: 0.34,
+    delay: 0.16,
+  },
+  experimental: {
+    label: "Órbita prismática — experimental",
+    description: "Voz hueca con quinta, octava flotante, movimiento tímbrico lento y eco musical.",
+    voiceProfile: "experimental",
+    cabinet: false,
+    automaticVibrato: false,
+    glideTimeConstant: 0.036,
+    gainTimeConstant: 0.03,
+    reverb: 0.30,
+    delay: 0.13,
+    preDelay: 0.021,
+    echoTime: 0.243,
+    echoFeedback: 0.27,
+  },
 };
+
+export const DEFAULT_SOUND_PRESET = "rca";
 
 // --- Notas (español) y constantes de afinación -------------------------------
 export const NOTE_NAMES_ES = [

@@ -14,9 +14,9 @@
       <h1>Theremin <span class="accent">Web</span></h1>
       <p class="tagline">Toca con las manos en el aire. La cámara ve; el navegador suena.</p>
       <ul class="howto">
-        <li><strong>Sube/baja</strong> una mano para cambiar el <strong>tono</strong>.</li>
-        <li><strong>Abre/cierra</strong> la pinza pulgar–índice para el <strong>volumen</strong>.</li>
-        <li>Mano <strong>derecha</strong> = agudos · mano <strong>izquierda</strong> = graves.</li>
+        <li>En <strong>Dúo</strong>, sube/baja cada mano y usa su pinza para volumen.</li>
+        <li>En <strong>Clásico</strong>, acerca/aleja la derecha para el tono.</li>
+        <li>La mano <strong>izquierda</strong> articula volumen, legato y staccato.</li>
       </ul>
       <button id="startBtn" class="start-btn">EMPEZAR</button>
       <p id="startStatus" class="start-status"></p>
@@ -82,11 +82,24 @@
       </div>
 
       <div class="control">
+        <label for="soundPresetSelect">Sonido</label>
+        <select id="soundPresetSelect">
+          <option value="rca" selected>Clásico — RCA/Rockmore</option>
+          <option value="cabinet1929">RCA + Cabinet 1929</option>
+          <option value="scifi">Ciencia ficción moderna</option>
+          <option value="experimental">Órbita prismática — experimental</option>
+        </select>
+        <span id="presetDescription" class="preset-description" aria-live="polite">
+          Grave de cello, medio vocal y agudo casi sinusoidal.
+        </span>
+      </div>
+
+      <div class="control">
         <label for="scaleSelect">Escala</label>
         <select id="scaleSelect">
-          <option value="free">Libre</option>
+          <option value="free" selected>Libre</option>
           <option value="chromatic">Cromática</option>
-          <option value="pentatonic" selected>Pentatónica</option>
+          <option value="pentatonic">Pentatónica</option>
           <option value="major">Mayor</option>
           <option value="minor">menor</option>
         </select>
@@ -95,19 +108,6 @@
       <div class="control">
         <label for="tonicSelect">Tónica</label>
         <select id="tonicSelect"></select>
-      </div>
-
-      <div class="control">
-        <label for="carrierSelect">Onda</label>
-        <select id="carrierSelect">
-          <option value="sine" selected>Senoidal (cálida)</option>
-          <option value="triangle">Triangular</option>
-        </select>
-      </div>
-
-      <div class="control toggles">
-        <label class="chk"><input type="checkbox" id="warmthChk" checked /> 2.º osc</label>
-        <label class="chk"><input type="checkbox" id="filterChk" checked /> Filtro</label>
       </div>
 
       <div class="control">
@@ -124,6 +124,67 @@
         <span id="recStatus" class="rec-status"></span>
       </div>
     </section>
+
+    <details class="performance-config" open>
+      <summary>Configuración interpretativa</summary>
+      <p class="config-intro">
+        Ajustes del modo Clásico. Los perfiles históricos fijan extensión,
+        dirección del campo y velocidad de respuesta; cualquier valor puede
+        personalizarse.
+      </p>
+      <div class="config-grid">
+        <div class="control config-wide">
+          <label for="performancePresetSelect">Perfil de ejecución</label>
+          <select id="performancePresetSelect">
+            <option value="rca1929" selected>RCA 1929 · Si2–Fa6 (≈3,5 oct)</option>
+            <option value="rockmore">Rockmore · Do2–Do7 (5 oct)</option>
+            <option value="comfortable">Webcam cómoda · Do3–Do6 (3 oct)</option>
+            <option value="custom">Personalizado</option>
+          </select>
+        </div>
+
+        <div class="control">
+          <label for="pitchMinHz">Frecuencia mínima</label>
+          <div class="number-unit"><input id="pitchMinHz" type="number" min="16" max="2000" step="0.01" value="123.47" /><span>Hz</span></div>
+        </div>
+
+        <div class="control">
+          <label for="pitchMaxHz">Frecuencia máxima</label>
+          <div class="number-unit"><input id="pitchMaxHz" type="number" min="32" max="5000" step="0.01" value="1396.91" /><span>Hz</span></div>
+        </div>
+
+        <div class="control config-slider octave-control">
+          <label for="octaveSpanRange">Extensión <output id="octaveSpanValue">3,5 oct</output></label>
+          <div class="octave-stepper">
+            <button id="octaveDownBtn" type="button" aria-label="Disminuir media octava">−</button>
+            <input id="octaveSpanRange" type="range" min="1" max="7" step="0.5" value="3.5" />
+            <button id="octaveUpBtn" type="button" aria-label="Aumentar media octava">+</button>
+          </div>
+        </div>
+
+        <div class="control">
+          <label for="pitchAxisSelect">Dirección del tono</label>
+          <select id="pitchAxisSelect">
+            <option value="x" selected>Horizontal · tipo antena</option>
+            <option value="y">Vertical · cámara</option>
+          </select>
+        </div>
+
+        <div class="control config-slider">
+          <label for="pitchGlideRange">Suavizado del tono <output id="pitchGlideValue">14 ms</output></label>
+          <input id="pitchGlideRange" type="range" min="3" max="100" step="1" value="14" />
+        </div>
+
+        <div class="control config-slider">
+          <label for="volumeResponseRange">Respuesta del volumen <output id="volumeResponseValue">55 ms</output></label>
+          <input id="volumeResponseRange" type="range" min="5" max="150" step="1" value="55" />
+        </div>
+      </div>
+      <p id="performanceDescription" class="config-description">
+        Extensión RCA documentada; campo horizontal y volumen deliberadamente más amortiguado.
+      </p>
+      <p id="performanceStatus" class="config-status" aria-live="polite"></p>
+    </details>
 
     <!-- Resultado de grabación -->
     <section id="recResult" class="rec-result hidden">
