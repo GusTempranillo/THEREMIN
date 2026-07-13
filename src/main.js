@@ -32,6 +32,7 @@ const state = {
   started: false,
   drone: false,
   frozenFrequency: null,
+  latestPerformedFrequency: null,
   gestureRecording: false,
   gestureStart: 0,
   gestureEvents: [],
@@ -154,6 +155,13 @@ async function onStart() {
 async function stopApp({ showStart = false } = {}) {
   state.started = false;
   state.gesturePlaying = false;
+  state.drone = false;
+  state.frozenFrequency = null;
+  state.latestPerformedFrequency = null;
+  if (controlsWired) {
+    ui.el.droneBtn.classList.remove("active");
+    ui.el.droneBtn.textContent = "Congelar nota";
+  }
   stopTrackingWatchdog();
   resetHandContinuity();
   if (recTimerId) clearInterval(recTimerId);
@@ -276,6 +284,7 @@ function processSide(side, hand, t, dt) {
   );
   const performedFrequency = side === "right" && state.drone && state.frozenFrequency
     ? state.frozenFrequency : tunedFreq;
+  if (side === "right") state.latestPerformedFrequency = performedFrequency;
   voice.setFrequency(performedFrequency, false, dt);
   voice.setAmplitude(m.volume);
 
@@ -329,6 +338,7 @@ function processClassic(hands, t, dt) {
     );
     const performedFrequency = state.drone && state.frozenFrequency
       ? state.frozenFrequency : tunedFreq;
+    state.latestPerformedFrequency = performedFrequency;
     voice.setFrequency(performedFrequency, false, dt);
     // RCA/Rockmore exige la mano de volumen: no se inventa una envolvente con
     // la pinza derecha cuando la izquierda desaparece.
@@ -488,11 +498,19 @@ function wireControls() {
   ui.el.creativeX.addEventListener("input", updateCreative);
   ui.el.creativeY.addEventListener("input", updateCreative);
   ui.el.droneBtn.addEventListener("click", () => {
-    state.drone = !state.drone;
-    if (state.drone) {
-      const last = pitchHistory[pitchHistory.length - 1];
-      state.frozenFrequency = last?.frequency ?? null;
-    } else state.frozenFrequency = null;
+    if (!state.drone) {
+      if (!Number.isFinite(state.latestPerformedFrequency)) {
+        ui.setPerformanceStatus("Muestra la mano de tono antes de congelar una nota.", true);
+        return;
+      }
+      state.drone = true;
+      state.frozenFrequency = state.latestPerformedFrequency;
+      ui.setPerformanceStatus(`Nota congelada en ${state.frozenFrequency.toFixed(2)} Hz.`);
+    } else {
+      state.drone = false;
+      state.frozenFrequency = null;
+      ui.setPerformanceStatus("Nota liberada.");
+    }
     ui.el.droneBtn.classList.toggle("active", state.drone);
     ui.el.droneBtn.textContent = state.drone ? "Liberar nota" : "Congelar nota";
   });

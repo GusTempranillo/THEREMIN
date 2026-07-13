@@ -166,3 +166,26 @@ test("temporal hand association survives a crossing", () => {
   ], out2);
   assert.ok(out2.left && out2.right);
 });
+
+test("frame timestamps remain valid when MediaPipe rejects a frame", () => {
+  const video = { readyState: 2, currentTime: 1 };
+  const tracking = new HandTracking(video);
+  const callbacks = [];
+  tracking.landmarker = {
+    detectForVideo: () => ({ landmarks: [] }),
+  };
+  tracking.onResults = (hands, info) => callbacks.push({ hands, info });
+
+  tracking._processFrame(1_000);
+  assert.equal(callbacks[0].info.timestampSeconds, 1);
+  assert.equal(callbacks[0].info.inferenceError, undefined);
+
+  video.currentTime = 2;
+  tracking.landmarker.detectForVideo = () => {
+    throw new Error("temporary inference failure");
+  };
+  assert.doesNotThrow(() => tracking._processFrame(1_010));
+  assert.equal(callbacks[1].info.timestampSeconds, 1.01);
+  assert.equal(callbacks[1].info.inferenceError, true);
+  assert.deepEqual(callbacks[1].hands, { left: null, right: null });
+});

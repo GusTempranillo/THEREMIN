@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Theremin Web — cámara + Web Audio</title>
   <meta name="description" content="Theremin virtual controlado por la webcam: visión por computador (MediaPipe) + síntesis Web Audio. Todo en tu dispositivo." />
   <link rel="stylesheet" href="styles.css" />
@@ -192,6 +192,39 @@
         <label class="chk"><input id="cabinetChk" type="checkbox" checked /> Cabinet 1929</label>
         <label class="ir-upload">Cargar IR real <input id="cabinetIrInput" type="file" accept="audio/*" /></label>
       </div>
+
+      <section class="documentation-launcher" aria-labelledby="documentationTitle">
+        <div class="documentation-heading">
+          <div>
+            <p class="documentation-kicker">Biblioteca Theremin Web</p>
+            <h3 id="documentationTitle">Aprender, comprender y profundizar</h3>
+          </div>
+          <p>Tres documentos visuales con buscador, índice interno y enlaces comentados.</p>
+        </div>
+        <nav class="documentation-grid" aria-label="Documentación de Theremin Web">
+          <a id="userManualLink" class="documentation-card" href="docs/manual.html" target="_blank" rel="noopener noreferrer">
+            <span class="documentation-card__index" aria-hidden="true">01</span>
+            <span class="documentation-card__title">Manual de usuario</span>
+            <span class="documentation-card__description">Configuración, técnica, práctica, experimentación, grabación y ayuda.</span>
+            <span class="documentation-card__cta">Abrir manual <span aria-hidden="true">↗</span></span>
+            <span class="sr-only">Se abre en una pestaña nueva.</span>
+          </a>
+          <a id="thereminHistoryLink" class="documentation-card" href="docs/historia.html" target="_blank" rel="noopener noreferrer">
+            <span class="documentation-card__index" aria-hidden="true">02</span>
+            <span class="documentation-card__title">Historia del theremin</span>
+            <span class="documentation-card__description">Termen, RCA, Rockmore, cine, Moog, era digital y salto a la web.</span>
+            <span class="documentation-card__cta">Explorar historia <span aria-hidden="true">↗</span></span>
+            <span class="sr-only">Se abre en una pestaña nueva.</span>
+          </a>
+          <a id="technicalSpecsLink" class="documentation-card" href="docs/especificaciones.html" target="_blank" rel="noopener noreferrer">
+            <span class="documentation-card__index" aria-hidden="true">03</span>
+            <span class="documentation-card__title">Especificaciones técnicas</span>
+            <span class="documentation-card__description">Visión, DSP, registros, equivalencias, efectos, privacidad y límites.</span>
+            <span class="documentation-card__cta">Ver especificación <span aria-hidden="true">↗</span></span>
+            <span class="sr-only">Se abre en una pestaña nueva.</span>
+          </a>
+        </nav>
+      </section>
     </details>
 
     <section id="trainingPanel" class="training-panel hidden" aria-live="polite">

@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Especificación técnica completa de Theremin Web: visión, mapeo, continuidad, DSP, presets, frecuencias, efectos, grabación, privacidad y compatibilidad." />
+  <meta name="theme-color" content="#071011" />
+  <title>Especificaciones técnicas · Theremin Web</title>
+  <link rel="stylesheet" href="docs.css" />
+  <script src="docs.js" defer></script>
+</head>
+<body data-document="especificaciones">
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+  <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
+
+  <header class="docs-header">
+    <div class="docs-header__inner">
+      <a class="docs-brand" href="../index.html" aria-label="Volver a Theremin Web">
+        <span class="docs-brand__mark" aria-hidden="true">TW</span>
+        <span class="docs-brand__text">Theremin Web · Documentación</span>
+      </a>
+      <nav class="docs-switcher" aria-label="Colección documental">
+        <a href="manual.html">Manual</a>
+        <a href="historia.html">Historia</a>
+        <a href="especificaciones.html" aria-current="page">Especificaciones</a>
+      </nav>
+      <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="docsSidebar" aria-label="Abrir índice">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="docs-layout">
+    <aside class="docs-sidebar" id="docsSidebar" aria-label="Índice y búsqueda">
+      <div class="docs-search">
+        <label for="docSearch">Buscar especificación</label>
+        <input id="docSearch" type="search" data-doc-search placeholder="Ej.: Worklet, 440 Hz…" autocomplete="off" />
+        <div class="search-results" data-search-results role="status" aria-live="polite" hidden></div>
+      </div>
+      <p class="toc-label">En esta página</p>
+      <nav class="toc" aria-label="Índice técnico">
+        <a href="#alcance">Alcance y definiciones</a>
+        <a href="#arquitectura">Arquitectura</a>
+        <a href="#vision">Visión y tracking</a>
+        <a href="#mapeo">Mapeo gestual</a>
+        <a href="#continuidad">Continuidad y escalas</a>
+        <a href="#rangos">Rangos y equivalencias</a>
+        <a href="#sintesis">Síntesis por voz</a>
+        <a href="#presets">Presets sonoros</a>
+        <a href="#efectos">Cabinet, sala y salida</a>
+        <a href="#latencia">Latencia y rendimiento</a>
+        <a href="#configuracion">Configuración y calibración</a>
+        <a href="#grabacion">Grabación y datos</a>
+        <a href="#privacidad">Privacidad y seguridad</a>
+        <a href="#compatibilidad">Compatibilidad y fallbacks</a>
+        <a href="#limites">Límites conocidos</a>
+        <a href="#mapa-codigo">Mapa del código</a>
+      </nav>
+      <div class="sidebar-tools"><button type="button" data-print>Imprimir / PDF</button></div>
+    </aside>
+
+    <main class="docs-main" id="contenido">
+      <header class="docs-hero">
+        <p class="eyebrow">Documento 03 · Especificación técnica</p>
+        <h1>De píxeles a presión sonora</h1>
+        <p class="hero-lede">Inventario verificable del instrumento: adquisición de vídeo, estimación de manos, matemáticas de afinación, automatización continua, síntesis, dinámica, espacio, persistencia, captura y límites.</p>
+        <div class="hero-meta" aria-label="Resumen del documento"><span>Sin backend</span><span>MediaPipe 0.10.35</span><span>AudioWorklet preferido</span><span>Do1–Do7</span><span>La4 = 440 Hz</span></div>
+      </header>
+
+      <nav class="chapter-map" aria-label="Atajos técnicos">
+        <a href="#arquitectura"><small>01 · Sistema</small><strong>Cadena completa de señal</strong></a>
+        <a href="#continuidad"><small>02 · Tono</small><strong>Por qué Libre no tiene escalones</strong></a>
+        <a href="#sintesis"><small>03 · DSP</small><strong>Fuente, armónicos y filtros</strong></a>
+        <a href="#rangos"><small>04 · Registro</small><strong>Explorador de frecuencias</strong></a>
+        <a href="#efectos"><small>05 · Salida</small><strong>Cabinet, sala, eco y limitador</strong></a>
+        <a href="#limites"><small>06 · Honestidad</small><strong>Qué modela y qué no</strong></a>
+      </nav>
+
+      <section class="doc-section" id="alcance" data-search-item>
+        <h2>Alcance, versión y términos</h2>
+        <p class="lead">Esta especificación describe el código de Theremin Web 3 en julio de 2026. Los valores indicados son constantes o comportamientos de la implementación, no objetivos de marketing.</p>
+        <div class="card-grid three">
+          <article class="info-card"><h3>Instrumento digital gestual</h3><p>No hay osciladores RF ni medida de capacitancia. La cámara entrega coordenadas y Web Audio genera la señal.</p></article>
+          <article class="info-card"><h3>Aplicación estática</h3><p>HTML, CSS y JavaScript ES modules; sin framework, bundler, build, base de datos ni backend propio.</p></article>
+          <article class="info-card"><h3>Históricamente informada</h3><p>Los perfiles RCA/Rockmore modelan tendencias espectrales y registros; no son emulación circuital ni clon medido.</p></article>
+        </div>
+        <h3>Definiciones operativas</h3>
+        <ul>
+          <li><strong>Continuidad C0:</strong> la frecuencia no presenta saltos de valor entre objetivos; la pendiente puede cambiar entre rampas.</li>
+          <li><strong>Libre:</strong> identidad exacta respecto al mapeo logarítmico, sin redondeo a MIDI.</li>
+          <li><strong>Inercia:</strong> tiempo expresivo adicional aplicado al enlace de tono; no es el puente técnico mínimo entre frames.</li>
+          <li><strong>Cabinet:</strong> ruta que aproxima amplificador, altavoz y caja. Una IR externa complementa esa cadena.</li>
+          <li><strong>Latencia indicada:</strong> estimación del navegador para salida de audio; no incluye toda la cadena de visión.</li>
+        </ul>
+      </section>
+
+      <section class="doc-section" id="arquitectura" data-search-item>
+        <h2>Arquitectura de extremo a extremo</h2>
+        <div class="signal-chain" role="img" aria-label="Cadena completa desde cámara hasta altavoces y grabación">
+          <div class="signal-node"><strong>Webcam</strong><small>vídeo, sin micrófono</small></div>
+          <div class="signal-node"><strong>MediaPipe</strong><small>21 landmarks × mano</small></div>
+          <div class="signal-node"><strong>Asociación</strong><small>roles temporales</small></div>
+          <div class="signal-node"><strong>Mapeo</strong><small>One Euro + log Hz</small></div>
+          <div class="signal-node"><strong>Trayectoria</strong><small>rampa AudioParam</small></div>
+          <div class="signal-node"><strong>Voz</strong><small>Worklet / osciladores</small></div>
+          <div class="signal-node"><strong>Efectos</strong><small>cabinet + sala + eco</small></div>
+          <div class="signal-node"><strong>Salida</strong><small>altavoz + grabación</small></div>
+        </div>
+        <h3>Separación modular</h3>
+        <div class="table-wrap">
+          <table>
+            <caption>Responsabilidades de los módulos</caption>
+            <thead><tr><th scope="col">Módulo</th><th scope="col">Responsabilidad</th><th scope="col">No debe decidir</th></tr></thead>
+            <tbody>
+              <tr><td><code>main.js</code></td><td>Orquestación, estado de sesión, modos, calibración, herramientas.</td><td>Algoritmo DSP interno.</td></tr>
+              <tr><td><code>handTracking.js</code></td><td>Cámara, MediaPipe, timestamps y asociación temporal.</td><td>Frecuencias musicales.</td></tr>
+              <tr><td><code>mapping.js</code></td><td>Landmarks → frecuencia/volumen/velocidad.</td><td>Forma de onda.</td></tr>
+              <tr><td><code>scale.js</code></td><td>Conversión MIDI/nombre y atracción a escala.</td><td>Adquisición visual.</td></tr>
+              <tr><td><code>pitchTrajectory.js</code></td><td>Puente exponencial continuo entre controles.</td><td>Rango o escala.</td></tr>
+              <tr><td><code>thereminVoice.js</code></td><td>Fuente, saturación, formantes, filtro, VCA y vibrato.</td><td>Cámara o persistencia.</td></tr>
+              <tr><td><code>audioEngine.js</code></td><td>Mezcla, cabinet, sala, eco, master y bus de grabación.</td><td>Identidad de manos.</td></tr>
+              <tr><td><code>recorder.js</code></td><td>MediaRecorder y WAV PCM.</td><td>Vídeo o micrófono.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>El grafo Web Audio se crea después del gesto <em>EMPEZAR</em>. Las dos voces nacen una sola vez por sesión; los cambios de preset o cabinet usan automatización y crossfade, no destrucción inmediata de nodos.</p>
+      </section>
+
+      <section class="doc-section" id="vision" data-search-item>
+        <h2>Visión por computador y tracking</h2>
+        <div class="card-grid">
+          <article class="info-card"><h3>Modelo</h3><p>MediaPipe Tasks Vision <code>0.10.35</code>, Hand Landmarker float16, modo VIDEO, máximo dos manos. Umbrales de detección, presencia y tracking: 0,5.</p></article>
+          <article class="info-card"><h3>Entrada solicitada</h3><p>Cámara frontal por defecto, 1280×720 ideal, hasta 60 FPS, <code>audio:false</code>. Las restricciones son ideales: el navegador negocia lo disponible.</p></article>
+          <article class="info-card"><h3>Delegación</h3><p>Se intenta GPU. Si la creación falla, se reconstruye el modelo con CPU. Esto cambia rendimiento, no mapeo musical.</p></article>
+          <article class="info-card"><h3>Bucle</h3><p><code>requestVideoFrameCallback</code> si existe; <code>requestAnimationFrame</code> como fallback. Se evita procesar dos veces el mismo <code>video.currentTime</code>.</p></article>
+        </div>
+        <h3>Landmarks utilizados</h3>
+        <ul>
+          <li><strong>Centro de palma:</strong> promedio 2D de muñeca y MCP 0, 5, 9, 13 y 17. Es más estable que una punta de dedo.</li>
+          <li><strong>Pinza:</strong> distancia pulgar–índice, landmarks 4 y 8.</li>
+          <li><strong>Escala de mano:</strong> distancia muñeca–MCP medio, landmarks 0 y 9, usada para normalizar la pinza.</li>
+          <li><strong>Handedness:</strong> se conserva como metadato, pero los roles se asignan por trayectoria para resistir espejado y cruces.</li>
+        </ul>
+        <h3>Asociación y pérdidas</h3>
+        <p>Con dos tracks previos se comparan asignación directa e intercambiada usando posición predicha por velocidad. Sin historial, las manos se ordenan por X teniendo en cuenta el espejo. Una sola mano se conecta al track cercano si la distancia es menor que 0,32; si no, se decide por mitad de imagen.</p>
+        <p>Una mano ausente conserva su último estado hasta 110 ms. Después la voz se silencia y se reinician mapeo y afinador. Un watchdog comprueba cada 100 ms si dejaron de llegar callbacks: su umbral nominal es 260 ms, por lo que el apagado efectivo puede caer aproximadamente entre 260 y 360 ms.</p>
+        <div class="callout warning"><strong>Límite geométrico</strong><p>MediaPipe estima una mano visible; no recupera datos detrás de una oclusión completa. El seguimiento temporal reduce intercambios, pero no puede garantizar identidad si ambas manos desaparecen y reaparecen cruzadas.</p></div>
+        <p>Referencia externa: <a href="https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker/web_js" target="_blank" rel="noopener noreferrer">Hand Landmarker para Web</a> y <a href="https://arxiv.org/abs/2006.10214" target="_blank" rel="noopener noreferrer">artículo de MediaPipe Hands</a>.</p>
+      </section>
+
+      <section class="doc-section" id="mapeo" data-search-item>
+        <h2>Mapeo gestual y filtros</h2>
+        <h3>Tono vertical</h3>
+        <p>El centro Y de la palma se filtra, se invierte —porque Y=0 está arriba—, se normaliza a la zona calibrada y se convierte a frecuencia:</p>
+        <div class="callout"><strong>Fórmula</strong><p><code>p = clamp((1 − yFiltrada − inputLow) / (inputHigh − inputLow), 0, 1)</code><br /><code>f = fMin × (fMax / fMin)<sup>p</sup></code></p></div>
+        <p>El exponente hace que una distancia visual igual represente un intervalo igual en octavas/cents. X no entra en la fórmula; solo ayuda a identidad y dibujo.</p>
+        <h3>Filtro One Euro</h3>
+        <div class="table-wrap">
+          <table>
+            <caption>Parámetros de entrada</caption>
+            <thead><tr><th scope="col">Señal</th><th scope="col">minCutoff</th><th scope="col">beta</th><th scope="col">dCutoff</th><th scope="col">Objetivo</th></tr></thead>
+            <tbody>
+              <tr><td>Posición</td><td>1,8</td><td>0,32</td><td>1,2</td><td>Estabilidad en reposo con respuesta al movimiento.</td></tr>
+              <tr><td>Apertura</td><td>1,5</td><td>0,010</td><td>1,0</td><td>Dinámica menos nerviosa.</td></tr>
+              <tr><td>Velocidad</td><td>2,5</td><td>0</td><td>1,0</td><td>Decidir atracción a escala.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Volumen</h3>
+        <p>En Dúo, la pinza normalizada se convierte así: silencio en ratio ≤0,18, máximo desde 1,05 y curva <code>v<sup>1,3</sup></code>. En Clásico, la mano izquierda usa altura calibrada para emular la antena de volumen. La derecha mantiene el tono.</p>
+        <p>La VCA no aplica esa amplitud linealmente en los perfiles históricos: usa <code>−48 × (1 − √amplitud)</code> dB para ganar resolución expresiva en el tramo bajo.</p>
+      </section>
+
+      <section class="doc-section" id="continuidad" data-search-item>
+        <h2>Continuidad tonal, afinación y escalas</h2>
+        <p class="lead">La cámara entrega objetivos discretos a 24–60 FPS; el audio trabaja normalmente a decenas de miles de muestras por segundo. Theremin Web no mantiene cada objetivo como escalón: programa el tramo que debe recorrer la frecuencia hasta el siguiente control.</p>
+        <div class="signal-chain" role="img" aria-label="Conversión de objetivos discretos de cámara en una trayectoria continua de audio">
+          <div class="signal-node"><strong>Frame n</strong><small>frecuencia objetivo A</small></div>
+          <div class="signal-node"><strong>Estimador</strong><small>intervalo de cámara</small></div>
+          <div class="signal-node"><strong>Rampa exponencial</strong><small>lineal en cents</small></div>
+          <div class="signal-node"><strong>Frame n+1</strong><small>retiene valor instantáneo</small></div>
+          <div class="signal-node"><strong>Nueva rampa</strong><small>sin salto C0</small></div>
+        </div>
+        <h3>Reglas de la trayectoria</h3>
+        <ul>
+          <li>El intervalo de control se estima y limita entre 1/120 y 1/12 s.</li>
+          <li>La rampa cubre al menos 1,15 × el intervalo estimado para solaparse con el siguiente frame.</li>
+          <li>El puente final se limita a 12–80 ms; la inercia elegida puede dominar dentro de ese margen.</li>
+          <li><code>exponentialRampToValueAtTime</code> interpola geométricamente: lineal en octavas/cents, no en Hz.</li>
+          <li><code>cancelAndHoldAtTime</code> retiene el valor exacto cuando llega un nuevo destino. Un fallback reconstruye matemáticamente la posición de la rampa en motores antiguos.</li>
+          <li>El Worklet desvanece cada armónico durante el 18 % previo al límite seguro de Nyquist; evita que aparezca/desaparezca como entero.</li>
+        </ul>
+        <div class="callout"><strong>Qué garantiza</strong><p>Continuidad de valor en la señal programada y un barrido Libre estrictamente monótono para una entrada monótona. No garantiza pendiente C1 ni elimina irregularidades de una detección visual errática.</p></div>
+        <h3>Escalas y “afina al parar”</h3>
+        <div class="table-wrap">
+          <table>
+            <caption>Definición de escalas en semitonos desde la tónica</caption>
+            <thead><tr><th scope="col">Escala</th><th scope="col">Intervalos</th><th scope="col">Respuesta</th></tr></thead>
+            <tbody>
+              <tr><td>Libre</td><td>—</td><td>Identidad exacta; factor de atracción = 0.</td></tr>
+              <tr><td>Cromática</td><td>0…11</td><td>Atrae al semitono más próximo al detenerse.</td></tr>
+              <tr><td>Pentatónica mayor</td><td>0, 2, 4, 7, 9</td><td>Atrae a cinco grados por octava.</td></tr>
+              <tr><td>Mayor</td><td>0, 2, 4, 5, 7, 9, 11</td><td>Siete grados relativos a la tónica.</td></tr>
+              <tr><td>Menor natural</td><td>0, 2, 3, 5, 7, 8, 10</td><td>Siete grados relativos a la tónica.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Velocidad ≥1,6 unidades normalizadas/s produce factor libre; ≤0,25 produce atracción completa. Entre ambos se interpola. El factor usa constante temporal de 45 ms y la frecuencia final se mezcla geométricamente hacia la nota de temperamento igual, La4=440 Hz.</p>
+      </section>
+
+      <section class="doc-section" id="rangos" data-search-item>
+        <h2>Frecuencias, octavas y equivalencias instrumentales</h2>
+        <div class="interactive-lab" aria-labelledby="rangeLabTitle">
+          <h3 id="rangeLabTitle">Explorador de rango</h3>
+          <p>Modifica el grave y la extensión para visualizar Do sucesivos. El cálculo limita el agudo a 5000 Hz, como la app.</p>
+          <div class="lab-controls">
+            <label>Frecuencia mínima (Hz)<input type="number" min="16" max="2000" step="0.01" value="32.703" data-range-min /></label>
+            <label>Extensión (octavas)<input type="range" min="1" max="7" step="0.5" value="6" data-range-octaves /></label>
+          </div>
+          <div class="range-rail" aria-hidden="true"><div class="range-markers" data-range-markers></div></div>
+          <output class="lab-output" data-range-output aria-live="polite"></output>
+        </div>
+        <h3>Perfiles implementados</h3>
+        <div class="table-wrap">
+          <table>
+            <caption>Rangos exactos del modo Clásico</caption>
+            <thead><tr><th scope="col">Perfil</th><th scope="col">Mínimo</th><th scope="col">Máximo</th><th scope="col">Octavas</th><th scope="col">Uso</th></tr></thead>
+            <tbody>
+              <tr><td>Concierto completo</td><td>32,70319566 Hz · Do1</td><td>2093,004522 Hz · Do7</td><td>6</td><td>Extremo medido del instrumento Rockmore restaurado.</td></tr>
+              <tr><td>RCA 1929</td><td>123,47 Hz · ≈Si2</td><td>1396,91 Hz · Fa6</td><td>≈3,5</td><td>Especificación histórica aproximada.</td></tr>
+              <tr><td>Rockmore estable</td><td>65,41 Hz · Do2</td><td>2093 Hz · Do7</td><td>5</td><td>Registro de concierto prudente.</td></tr>
+              <tr><td>Webcam cómoda</td><td>130,81 Hz · Do3</td><td>1046,5 Hz · Do6</td><td>3</td><td>Mayor resolución espacial por semitono.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Equivalencias de registro — no de timbre</h3>
+        <div class="table-wrap">
+          <table>
+            <caption>Cómo se sitúa Do1–Do7 frente a instrumentos acústicos</caption>
+            <thead><tr><th scope="col">Referencia</th><th scope="col">Registro aproximado</th><th scope="col">Relación con Theremin Web</th></tr></thead>
+            <tbody>
+              <tr><td>Piano de 88 teclas</td><td>La0–Do8</td><td>Do1–Do7 cubre 72 semitonos: omite La0–Si0 y la última octava superior.</td></tr>
+              <tr><td>Contrabajo</td><td>≈Mi1–Do5 sonando</td><td>La zona grave del theremin solapa su fundamental, pero no su ataque ni caja.</td></tr>
+              <tr><td>Violonchelo</td><td>Do2 hacia registros agudos</td><td>Do2 es su cuerda grave; la riqueza RCA baja puede recordarlo perceptualmente.</td></tr>
+              <tr><td>Voces humanas</td><td>Conjunto aproximado Mi2–Do6</td><td>El medio Rockmore puede sugerir una voz sostenida, sin formantes articulados ni texto.</td></tr>
+              <tr><td>Violín</td><td>Sol3 hacia ≈La7</td><td>Gran solapamiento superior; el theremin carece de arco, cuerda y resonancia de madera.</td></tr>
+              <tr><td>Flauta de concierto</td><td>Do4–Do7 y algo más</td><td>Los agudos casi sinusoidales pueden evocar flauta o silbido, no simular su columna de aire.</td></tr>
+              <tr><td>Órgano</td><td>Mucho más amplio según registros</td><td>Órbita puede resultar organístico por parciales estables; no modela tubos ni recinto.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warning"><strong>Do1 exige transductor</strong><p>El motor genera 32,7 Hz con sus armónicos; un teléfono o portátil puede dejar audible solo la estructura superior. La documentación de rango describe la señal, no la respuesta de tu altavoz.</p></div>
+      </section>
+
+      <section class="doc-section" id="sintesis" data-search-item>
+        <h2>Síntesis por voz y modelado tímbrico</h2>
+        <h3>Grafo común de una voz</h3>
+        <div class="signal-chain" role="img" aria-label="Grafo de síntesis de una voz">
+          <div class="signal-node"><strong>Fuente</strong><small>Worklet o PeriodicWave</small></div>
+          <div class="signal-node"><strong>Mix 0,58</strong><small>headroom</small></div>
+          <div class="signal-node"><strong>WaveShaper</strong><small>asimétrico · 4×</small></div>
+          <div class="signal-node"><strong>HP 18 Hz</strong><small>bloqueo DC</small></div>
+          <div class="signal-node"><strong>Formantes</strong><small>720 / 1450 Hz</small></div>
+          <div class="signal-node"><strong>LP dinámico</strong><small>perfil + registro</small></div>
+          <div class="signal-node"><strong>VCA</strong><small>ataque / release</small></div>
+        </div>
+        <h3>Ruta preferida: AudioWorklet</h3>
+        <ul>
+          <li><code>frequency</code>: a-rate, 16–5000 Hz.</li>
+          <li><code>detune</code>: a-rate, −100…+100 cents.</li>
+          <li><code>timbreAmplitude</code>: k-rate, 0…1; modula riqueza en perfiles históricos.</li>
+          <li>Fuente aditiva monofónica y determinista. Los perfiles históricos parten de pulso redondeado con duty/richness dependientes del registro.</li>
+          <li>RCA/Rockmore usan hasta 24 armónicos; Sci‑Fi solicita hasta 32, siempre limitados por frecuencia de muestreo.</li>
+          <li>Cambio de perfil con crossfade lineal de 50 ms y fase continua compartida.</li>
+          <li>Experimental suma fundamental, parciales 2/3/4/7/11, quinta 1,5× y octava 2,006×.</li>
+        </ul>
+        <h3>Fallback nativo</h3>
+        <p>Si AudioWorklet no está disponible o su módulo no carga, se construyen OscillatorNode y PeriodicWave:</p>
+        <ul>
+          <li>Siete ondas históricas ancladas en Do1…Do7, 32 armónicos, con riqueza decreciente y duty creciente.</li>
+          <li>Crossfade equal-power entre las dos anclas vecinas en log2(frecuencia).</li>
+          <li>PeriodicWave Sci‑Fi de hasta 40 armónicos y banco experimental con tres osciladores.</li>
+          <li>Ambas rutas comparten filtros, saturación, VCA, cabinet y efectos, pero <strong>no son bit-idénticas</strong>.</li>
+        </ul>
+        <h3>Saturación, formantes y filtro</h3>
+        <p>La tabla de WaveShaper tiene 4096 puntos, drives positivo/negativo 1,55/1,22 y nivel negativo 0,91, con oversampling 4×. Rockmore realza 720 Hz +2,5 dB y 1450 Hz +1,7 dB; RCA +1,8/+1,1 dB. El filtro de salida se cierra al subir:</p>
+        <ul>
+          <li>Rockmore: <code>max(2450, 5100 − 690 × octavas sobre Do2)</code> Hz.</li>
+          <li>RCA: <code>max(2700, 5600 − 650 × octavas sobre Do2)</code> Hz.</li>
+          <li>Sci‑Fi: 9200 Hz. Experimental: 7200 Hz.</li>
+        </ul>
+        <div class="callout"><strong>Principio acústico</strong><p>Los graves históricos son ricos, asimétricos y comparables a un centro de violonchelo; al subir se pierden armónicos hasta una señal próxima a seno. “Comparable” describe percepción, no emulación de instrumento acústico.</p></div>
+        <p>Referencia sobre el entorno usado: <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioWorklet" target="_blank" rel="noopener noreferrer">AudioWorklet en MDN</a>.</p>
+      </section>
+
+      <section class="doc-section" id="presets" data-search-item>
+        <h2>Presets sonoros: valores y finalidad</h2>
+        <div class="table-wrap">
+          <table>
+            <caption>Configuración base de cada preset</caption>
+            <thead><tr><th scope="col">Preset</th><th scope="col">Perfil</th><th scope="col">Cabinet</th><th scope="col">Vibrato</th><th scope="col">Glide</th><th scope="col">Reverb</th><th scope="col">Eco</th></tr></thead>
+            <tbody>
+              <tr><td>RCA/Rockmore</td><td>rca</td><td>No</td><td>No</td><td>12 ms</td><td>4 %</td><td>0</td></tr>
+              <tr><td>Rockmore concierto</td><td>rockmore</td><td>Sí</td><td>No</td><td>10 ms</td><td>12 %</td><td>0</td></tr>
+              <tr><td>RCA + Cabinet 1929</td><td>rca</td><td>Sí</td><td>No</td><td>12 ms</td><td>10 %</td><td>0</td></tr>
+              <tr><td>Ciencia ficción</td><td>scifi</td><td>No</td><td>5,8 Hz · 34 ¢</td><td>65 ms</td><td>34 %</td><td>16 %</td></tr>
+              <tr><td>Órbita prismática</td><td>experimental</td><td>No</td><td>No</td><td>36 ms</td><td>30 %</td><td>13 %</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Envolvente</h3>
+        <p>Rockmore define ataque 12 ms y release 24 ms. Los demás usan la constante de ganancia del perfil: RCA 18 ms, Cabinet 22 ms, Sci‑Fi 45 ms, Experimental 30 ms. La configuración interpretativa puede sustituir la respuesta de la voz derecha en Clásico.</p>
+        <h3>Vibrato automático</h3>
+        <p>Solo Sci‑Fi lo activa: comienza después de 450 ms de sonido audible y entra con constante de 240 ms. Rockmore, RCA y Experimental dejan el vibrato íntegramente a la mano.</p>
+        <h3>Laboratorio XY</h3>
+        <p>X mezcla de 0 a 1 hacia el perfil Experimental. Y añade hasta 0,42 de reverb y 0,18 de eco sobre la base; límites finales 0,72 y 0,34 respectivamente.</p>
+      </section>
+
+      <section class="doc-section" id="efectos" data-search-item>
+        <h2>Cabinet 1929, espacio, eco y salida</h2>
+        <h3>Topología global</h3>
+        <div class="signal-chain" role="img" aria-label="Grafo de salida global con ruta directa o cabinet, señal seca, sala, eco y limitador">
+          <div class="signal-node"><strong>Suma voces</strong><small>dos buses mono</small></div>
+          <div class="signal-node"><strong>Directo / Cabinet</strong><small>crossfade 55 ms</small></div>
+          <div class="signal-node"><strong>Seco + sala + eco</strong><small>rutas paralelas</small></div>
+          <div class="signal-node"><strong>Limitador</strong><small>picos accidentales</small></div>
+          <div class="signal-node"><strong>Master 0,72</strong><small>altavoz + MediaStream</small></div>
+        </div>
+        <h3>Cabinet modelado</h3>
+        <div class="table-wrap">
+          <table>
+            <caption>Etapas del cabinet</caption>
+            <thead><tr><th scope="col">Etapa</th><th scope="col">Valor</th><th scope="col">Función</th></tr></thead>
+            <tbody>
+              <tr><td>Pasa-altos</td><td>68 Hz · Q 0,72</td><td>Limita excursión y subgrave.</td></tr>
+              <tr><td>Cuerpo</td><td>+3,1 dB · 215 Hz · Q 0,82</td><td>Resonancia de caja/grave.</td></tr>
+              <tr><td>Voz</td><td>+2 dB · 860 Hz · Q 0,68</td><td>Presencia media.</td></tr>
+              <tr><td>Pasa-bajos</td><td>5000 Hz · Q 0,66</td><td>Ancho de banda de altavoz antiguo.</td></tr>
+              <tr><td>Saturación</td><td>WaveShaper asimétrico · 4×</td><td>No linealidad moderada.</td></tr>
+              <tr><td>Compresión</td><td>−15 dB · 2,2:1 · 18/95 ms</td><td>Comportamiento mecánico aproximado.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Al activarse, la ruta directa va a 0 y cabinet a 0,92 mediante una constante de 55 ms. Una IR cargada se inserta después de filtros/saturación/compresión y sustituye la rama modelada final mediante crossfade de 80 ms; por tanto es una <strong>IR complementaria</strong>, no un “seco → IR” puro.</p>
+        <h3>Sala de concierto</h3>
+        <ul>
+          <li>Convolver estéreo sintético de 1,6 s, decaimiento 2,35.</li>
+          <li>Ruido pseudoaleatorio determinista: mismo carácter para una misma frecuencia de muestreo.</li>
+          <li>Reflexiones tempranas a 11, 19, 31 y 47 ms con pequeño desplazamiento entre canales.</li>
+          <li>Rockmore: predelay 17 ms y damping a 4800 Hz.</li>
+          <li>El nivel seco se ajusta a <code>1 − wet × 0,22</code>.</li>
+        </ul>
+        <h3>Eco y protección final</h3>
+        <p>Sci‑Fi usa 158 ms / feedback 0,17; Experimental 243 ms / 0,27. El feedback pasa por LP 4800 Hz y el nivel visible se limita a 0,4. El compresor final actúa como limitador: umbral −1 dB, knee 1,5, ratio 20:1, ataque 2 ms, release 120 ms.</p>
+        <div class="callout warning"><strong>No es una IR histórica medida</strong><p>La sala y el Cabinet 1929 son modelos diseñados. La app acepta una IR externa, pero todavía no incorpora una captura validada de un altavoz RCA 106 ni comparación espectral automatizada.</p></div>
+      </section>
+
+      <section class="doc-section" id="latencia" data-search-item>
+        <h2>Latencia, cadencia y rendimiento</h2>
+        <div class="interactive-lab" aria-labelledby="latencyLabTitle">
+          <h3 id="latencyLabTitle">Estimador pedagógico</h3>
+          <p>Suma media espera de captura, media rampa de enlace y latencia de salida que introduzcas. No incluye inferencia ni compositor del sistema; no sustituye una medida física extremo a extremo.</p>
+          <div class="lab-controls">
+            <label>Tracking (FPS)<input type="number" min="10" max="120" step="1" value="30" data-latency-fps /></label>
+            <label>Inercia elegida (ms)<input type="number" min="3" max="150" step="1" value="10" data-latency-glide /></label>
+            <label>Salida Web Audio (ms)<input type="number" min="0" max="200" step="1" value="20" data-latency-output /></label>
+          </div>
+          <output class="lab-output" data-latency-output-value aria-live="polite"></output>
+        </div>
+        <h3>Qué muestra la interfaz</h3>
+        <ul>
+          <li>FPS: media exponencial 90/10 del reloj de callback.</li>
+          <li>Latencia: <code>baseLatency + outputLatency</code> cuando el navegador los expone.</li>
+          <li>No se mide fotón→landmarks, espera de scheduling, DAC, Bluetooth ni acústica.</li>
+        </ul>
+        <h3>Factores dominantes</h3>
+        <div class="card-grid">
+          <article class="info-card"><h3>Exposición de cámara</h3><p>En poca luz, la cámara puede alargar exposición y bajar FPS antes de que el código intervenga.</p></article>
+          <article class="info-card"><h3>Inferencia</h3><p>GPU suele mejorar cadencia; CPU es fallback funcional. Resolución, SoC y carga térmica importan.</p></article>
+          <article class="info-card"><h3>Audio</h3><p><code>latencyHint:"interactive"</code> solicita baja latencia, pero el navegador y dispositivo eligen el buffer real.</p></article>
+          <article class="info-card"><h3>Transporte</h3><p>Bluetooth puede añadir decenas o cientos de milisegundos fuera del control Web Audio.</p></article>
+        </div>
+        <p>Objetivo manual de QA: tracking estable ≥24 FPS en móvil medio y ≥30 FPS en escritorio; audio cableado por debajo de 50 ms declarados cuando el sistema lo permita. No se afirma como garantía universal.</p>
+      </section>
+
+      <section class="doc-section" id="configuracion" data-search-item>
+        <h2>Configuración, calibración y persistencia</h2>
+        <h3>Estado de fábrica</h3>
+        <p>Modo Clásico · Rockmore · Libre · Do · Concierto completo Do1–Do7 · reverb 0,12 · Cabinet activo · inercia 10 ms · volumen 18 ms.</p>
+        <h3>Persistencia</h3>
+        <p>Los ajustes se guardan en <code>localStorage</code> bajo <code>theremin-web:settings:v5</code>. Existe migración desde v4: conserva datos seguros, descarta calibración horizontal y valida el rango.</p>
+        <div class="table-wrap">
+          <table>
+            <caption>Qué se conserva al recargar</caption>
+            <thead><tr><th scope="col">Se guarda</th><th scope="col">No se guarda</th></tr></thead>
+            <tbody>
+              <tr><td>Sonido, perfil, modo, escala, tónica</td><td>Posición de sliders XY</td></tr>
+              <tr><td>Reverb, cabinet, cámara, entrenamiento</td><td>Estado drone</td></tr>
+              <tr><td>Rango, octavas, inercia, volumen</td><td>Gestos en memoria</td></tr>
+              <tr><td>Calibración tono/volumen</td><td>IR externa cargada</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Calibración robusta</h3>
+        <ul>
+          <li>Cuatro poses: grave, agudo, silencio, forte.</li>
+          <li>Ventana de 340 ms y mínimo de seis muestras; estadístico mediana.</li>
+          <li>Recorrido de tono mínimo: <code>min(0,55, max(0,22, octavas × 0,075))</code>.</li>
+          <li>Separación mínima de volumen: 0,12.</li>
+          <li>Admite gestos normales o invertidos y normaliza sus extremos.</li>
+        </ul>
+      </section>
+
+      <section class="doc-section" id="grabacion" data-search-item>
+        <h2>Grabación, WAV y datos de gestos</h2>
+        <h3>Audio</h3>
+        <ul>
+          <li><code>MediaStreamDestination</code> recibe la mezcla después de efectos, limitador y master.</li>
+          <li>Orden de códec: WebM/Opus, WebM, Ogg/Opus, MP4, según <code>MediaRecorder.isTypeSupported</code>.</li>
+          <li>Se solicitan chunks cada 100 ms y se construye un Blob al detener.</li>
+          <li>La conversión WAV decodifica el Blob y escribe RIFF PCM entero de 16 bits con mismos canales, sample rate y número de frames.</li>
+          <li>Web Share es opcional; la descarga local sigue disponible si no existe.</li>
+        </ul>
+        <h3>Gestos</h3>
+        <p>El formato JSON versión 1 registra eventos <code>{t, frequency, amplitude, preset}</code>, muestreados como máximo a 30 Hz. La importación limita a 18 000 eventos. La reproducción automatiza la voz derecha con <code>requestAnimationFrame</code>.</p>
+        <h3>Entrenamiento</h3>
+        <ul>
+          <li>Cents respecto al semitono temperado más próximo.</li>
+          <li>Estabilidad: desviación estándar de cents en historial reciente.</li>
+          <li>Vibrato: cruces alrededor del promedio durante una ventana aproximada de 1,2 s; necesita al menos 0,5 s y tres cruces.</li>
+        </ul>
+      </section>
+
+      <section class="doc-section" id="privacidad" data-search-item>
+        <h2>Privacidad, red y seguridad</h2>
+        <div class="card-grid">
+          <article class="info-card"><h3>Sin subida de vídeo</h3><p>No hay llamadas propias fetch/XHR/WebSocket, analítica ni telemetría. Los frames pasan de <code>video</code> al modelo local.</p></article>
+          <article class="info-card"><h3>Descargas de ejecución</h3><p>El módulo y WASM llegan de jsDelivr; el modelo float16, de Google Storage. Sin esos recursos previamente cacheados no hay arranque offline completo.</p></article>
+          <article class="info-card"><h3>Almacenamiento local</h3><p>Preferencias y calibración no están cifradas. No contienen vídeo, pero cualquier script del mismo origen podría leerlas.</p></article>
+          <article class="info-card"><h3>Archivos del usuario</h3><p>IR, JSON y grabación permanecen en memoria/local hasta descarga o compartir. No se envían automáticamente.</p></article>
+        </div>
+        <h3>Cabeceras de Vercel</h3>
+        <ul>
+          <li><code>Permissions-Policy: camera=(self), microphone=()</code></li>
+          <li><code>X-Content-Type-Options: nosniff</code></li>
+          <li><code>Referrer-Policy: strict-origin-when-cross-origin</code></li>
+          <li><code>Cache-Control: public, max-age=0, must-revalidate</code></li>
+        </ul>
+        <p>No hay Content Security Policy, Subresource Integrity ni service worker. Añadir CSP requiere autorizar explícitamente jsDelivr, Google Storage, WebAssembly y las necesidades de MediaPipe.</p>
+      </section>
+
+      <section class="doc-section" id="compatibilidad" data-search-item>
+        <h2>Compatibilidad y matriz de fallbacks</h2>
+        <h3>Requisitos mínimos</h3>
+        <ul><li>HTTPS o localhost para cámara.</li><li>JavaScript ES modules, dynamic import y WebAssembly.</li><li><code>getUserMedia</code> y Web Audio.</li><li>MediaRecorder solo para la función de grabación.</li></ul>
+        <div class="table-wrap">
+          <table>
+            <caption>Degradación controlada</caption>
+            <thead><tr><th scope="col">Capacidad preferida</th><th scope="col">Fallback</th><th scope="col">Diferencia observable</th></tr></thead>
+            <tbody>
+              <tr><td>MediaPipe GPU</td><td>CPU</td><td>Posible reducción de FPS / mayor consumo.</td></tr>
+              <tr><td>requestVideoFrameCallback</td><td>requestAnimationFrame</td><td>Menor sincronía con frames reales; se evita duplicación.</td></tr>
+              <tr><td>AudioWorklet</td><td>OscillatorNode + PeriodicWave</td><td>Timbre aproximado, no bit-idéntico.</td></tr>
+              <tr><td>cancelAndHoldAtTime</td><td>Reconstrucción de trayectoria</td><td>Misma intención continua en motores antiguos.</td></tr>
+              <tr><td>MediaRecorder WebM/Opus</td><td>WebM, Ogg o MP4</td><td>Contenedor depende del navegador.</td></tr>
+              <tr><td>Conversión WAV</td><td>Archivo comprimido original</td><td>WAV puede no generarse si el códec no se decodifica.</td></tr>
+              <tr><td>Web Share</td><td>Descarga</td><td>Sin panel de compartir del sistema.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Navegadores objetivo de QA</h3>
+        <p>Chrome y Edge en Windows; Firefox; Safari en macOS e iOS/iPadOS; Chrome en Android. La sintaxis y las pruebas unitarias no sustituyen una sesión HTTPS con cámara/audio real en cada plataforma.</p>
+      </section>
+
+      <section class="doc-section" id="limites" data-search-item>
+        <h2>Límites conocidos y afirmaciones que no se hacen</h2>
+        <div class="callout warning"><strong>Modelo, no clon</strong><p>RCA/Rockmore y Cabinet 1929 son modelos perceptivos basados en tendencias documentadas. No reproducen cada válvula, transformador, bobina, antena, distorsión del altavoz ni interacción eléctrica del cuerpo.</p></div>
+        <ul>
+          <li>No existe todavía una IR medida y validada de RCA 106 incluida de fábrica.</li>
+          <li>Worklet y fallback nativo no son espectralmente idénticos.</li>
+          <li>No hay medida automatizada de latencia cámara→altavoz ni compensación de Bluetooth.</li>
+          <li>No hay pruebas OfflineAudioContext de barridos completos ni comparación espectral contra grabaciones de referencia.</li>
+          <li>La cámara 2D no mide distancia real, capacitancia, profundidad ni orientación completa.</li>
+          <li>Los extremos Do1/Do7 pueden ser poco útiles según altavoz, FPS, campo calibrado y técnica.</li>
+          <li>Una IR importada no tiene límite explícito de duración/tamaño y pasa después de parte del modelado.</li>
+          <li>Grabaciones largas permanecen en memoria; no hay streaming a disco.</li>
+          <li>No existe backend, colaboración en tiempo real, MIDI, OSC, PWA ni funcionamiento offline completo.</li>
+          <li>Las escalas ofrecen atracción tonal, no garantía de afinación durante cada gesto.</li>
+          <li>La asociación de manos no puede resolver oclusiones completas indefinidas.</li>
+        </ul>
+        <h3>Prioridades técnicas futuras</h3>
+        <ol>
+          <li>Medición de cabinet/altavoz histórico y banco de comparaciones espectrales.</li>
+          <li>Pruebas de audio offline con jitter, dropouts, cambios de registro y límites de Nyquist.</li>
+          <li>Medida física extremo a extremo mediante flash/clic o loopback.</li>
+          <li>Validación y límites de IR/JSON, gestión de Object URL y grabación larga.</li>
+          <li>QA pública completa en la matriz de navegadores y dispositivos.</li>
+        </ol>
+      </section>
+
+      <section class="doc-section" id="mapa-codigo" data-search-item>
+        <h2>Mapa del código y referencias externas</h2>
+        <div class="table-wrap">
+          <table>
+            <caption>Archivos de implementación</caption>
+            <thead><tr><th scope="col">Archivo</th><th scope="col">Conceptos clave</th></tr></thead>
+            <tbody>
+              <tr><td><code>src/config.js</code></td><td>Versiones, filtros, rangos, presets, escalas y referencia 440 Hz.</td></tr>
+              <tr><td><code>src/handTracking.js</code></td><td>MediaPipe, cámara, landmarks, asociación y FPS.</td></tr>
+              <tr><td><code>src/oneEuro.js</code></td><td>Filtro adaptativo de posición, apertura y velocidad.</td></tr>
+              <tr><td><code>src/mapping.js</code></td><td>Normalización vertical, ecuación logarítmica y pinza.</td></tr>
+              <tr><td><code>src/scale.js</code></td><td>Temperamento igual, nombres españoles y atracción dinámica.</td></tr>
+              <tr><td><code>src/pitchTrajectory.js</code></td><td>Estimación de frame y automatización continua compatible.</td></tr>
+              <tr><td><code>src/theremin-worklet.js</code></td><td>Fuente aditiva a-rate, perfiles y antialias gradual.</td></tr>
+              <tr><td><code>src/thereminVoice.js</code></td><td>Fallback, filtros, saturación, VCA y vibrato.</td></tr>
+              <tr><td><code>src/audioEngine.js</code></td><td>Cabinet, convolver, eco, limitador y salida.</td></tr>
+              <tr><td><code>src/settings.js</code></td><td>Esquema v5, migración, validación y calibración.</td></tr>
+              <tr><td><code>src/recorder.js</code></td><td>MediaRecorder, Blob y codificador WAV.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Estándares y documentación base</h3>
+        <ul class="source-list">
+          <li><a href="https://www.w3.org/TR/webaudio/" target="_blank" rel="noopener noreferrer">W3C Web Audio API</a> — grafo, AudioParam y procesamiento.</li>
+          <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioWorklet" target="_blank" rel="noopener noreferrer">MDN AudioWorklet</a> — procesamiento dedicado de baja latencia.</li>
+          <li><a href="https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker/web_js" target="_blank" rel="noopener noreferrer">Google AI Edge · Hand Landmarker Web</a> — API de visión.</li>
+          <li><a href="https://arxiv.org/abs/2006.10214" target="_blank" rel="noopener noreferrer">MediaPipe Hands</a> — arquitectura de seguimiento.</li>
+          <li><a href="https://www.rcatheremin.com/servicenotes.php" target="_blank" rel="noopener noreferrer">RCA Service Notes</a> — referencia histórica de circuito y rango.</li>
+          <li><a href="https://www.rcatheremin.com/tone.php" target="_blank" rel="noopener noreferrer">RCA tone measurements</a> — forma de onda y espectro observados.</li>
+        </ul>
+        <p>Para el uso cotidiano vuelve al <a href="manual.html">manual</a>; para entender por qué estas decisiones importan consulta la <a href="historia.html">historia documentada</a>.</p>
+      </section>
+
+      <footer class="docs-footer">
+        <p>Especificación técnica de Theremin Web 3 · instantánea de julio de 2026.</p>
+        <nav aria-label="Navegación final"><a href="../index.html">Volver al instrumento</a><a href="manual.html">Manual</a><a href="historia.html">Historia</a></nav>
+      </footer>
+    </main>
+  </div>
+
+  <button class="back-top" type="button" data-back-top aria-label="Volver arriba">↑</button>
+</body>
+</html>

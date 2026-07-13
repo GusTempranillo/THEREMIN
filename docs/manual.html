@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Manual completo e interactivo de Theremin Web: preparación, configuración, interpretación, experimentación, grabación y solución de problemas." />
+  <meta name="theme-color" content="#071011" />
+  <title>Manual de usuario · Theremin Web</title>
+  <link rel="stylesheet" href="docs.css" />
+  <script src="docs.js" defer></script>
+</head>
+<body data-document="manual">
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+  <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
+
+  <header class="docs-header">
+    <div class="docs-header__inner">
+      <a class="docs-brand" href="../index.html" aria-label="Volver a Theremin Web">
+        <span class="docs-brand__mark" aria-hidden="true">TW</span>
+        <span class="docs-brand__text">Theremin Web · Documentación</span>
+      </a>
+      <nav class="docs-switcher" aria-label="Colección documental">
+        <a href="manual.html" aria-current="page">Manual</a>
+        <a href="historia.html">Historia</a>
+        <a href="especificaciones.html">Especificaciones</a>
+      </nav>
+      <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="docsSidebar" aria-label="Abrir índice">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="docs-layout">
+    <aside class="docs-sidebar" id="docsSidebar" aria-label="Índice y búsqueda">
+      <div class="docs-search">
+        <label for="docSearch">Buscar en el manual</label>
+        <input id="docSearch" type="search" data-doc-search placeholder="Ej.: calibrar, vibrato…" autocomplete="off" />
+        <div class="search-results" data-search-results role="status" aria-live="polite" hidden></div>
+      </div>
+      <p class="toc-label">En esta página</p>
+      <nav class="toc" aria-label="Índice del manual">
+        <a href="#primer-sonido">Primer sonido</a>
+        <a href="#preparar-espacio">Preparar el espacio</a>
+        <a href="#lenguaje-gestual">Lenguaje gestual</a>
+        <a href="#controles">Todos los controles</a>
+        <a href="#sonidos-rangos">Sonidos y rangos</a>
+        <a href="#calibracion">Calibración</a>
+        <a href="#interpretacion">Técnica interpretativa</a>
+        <a href="#practica">Rutas de práctica</a>
+        <a href="#laboratorio">Laboratorio creativo</a>
+        <a href="#grabacion">Grabación y archivos</a>
+        <a href="#problemas">Solución de problemas</a>
+        <a href="#privacidad">Privacidad y accesibilidad</a>
+        <a href="#referencia">Referencia rápida</a>
+      </nav>
+      <div class="sidebar-tools">
+        <button type="button" data-print>Imprimir / PDF</button>
+      </div>
+    </aside>
+
+    <main class="docs-main" id="contenido">
+      <header class="docs-hero">
+        <p class="eyebrow">Documento 01 · Manual de usuario</p>
+        <h1>Del primer gesto a la interpretación</h1>
+        <p class="hero-lede">
+          Una guía práctica para convertir la cámara en un campo musical continuo: montaje,
+          calibración, articulación, afinación, presets históricos, experimentación y captura.
+          No necesitas conocer síntesis; sí conviene escuchar con atención y moverte con intención.
+        </p>
+        <div class="hero-meta" aria-label="Resumen del documento">
+          <span>Lectura guiada</span><span>Consejos de concierto</span><span>Recetas experimentales</span><span>Resolución de fallos</span>
+        </div>
+      </header>
+
+      <nav class="chapter-map" aria-label="Atajos del manual">
+        <a href="#primer-sonido"><small>01 · Arranque</small><strong>Sonar en menos de dos minutos</strong></a>
+        <a href="#interpretacion"><small>02 · Técnica</small><strong>Glissando, vibrato y articulación</strong></a>
+        <a href="#sonidos-rangos"><small>03 · Carácter</small><strong>Elegir timbre, extensión y escala</strong></a>
+        <a href="#laboratorio"><small>04 · Exploración</small><strong>Órbita, XY, drone y gestos</strong></a>
+        <a href="#grabacion"><small>05 · Captura</small><strong>Grabar, exportar y compartir</strong></a>
+        <a href="#problemas"><small>06 · Ayuda</small><strong>Diagnóstico por síntomas</strong></a>
+      </nav>
+
+      <section class="doc-section" id="primer-sonido" data-search-item>
+        <h2>Primer sonido: recorrido esencial</h2>
+        <p class="lead">
+          Theremin Web abre preparado como instrumento clásico de concierto: modo Clásico,
+          escala Libre, voz Rockmore, Cabinet 1929, sala discreta y extensión Do1–Do7.
+          La aplicación necesita un clic inicial porque el navegador protege cámara y audio.
+        </p>
+        <ol class="steps">
+          <li><strong>Abre la app por HTTPS o en localhost.</strong> Pulsa <em>EMPEZAR</em> y concede acceso a la cámara. Nunca solicita el micrófono.</li>
+          <li><strong>Entra con las manos fuera de plano.</strong> Deja que el indicador de FPS se estabilice y comprueba que la cámara seleccionada sea la correcta.</li>
+          <li><strong>Muestra primero la mano derecha.</strong> Muévela despacio de abajo arriba: abajo es grave, arriba es agudo. En Libre no existen notas ni escalones entre ambos extremos.</li>
+          <li><strong>Añade la mano izquierda.</strong> Baja su altura para cerrar el volumen y súbela para abrirlo. Separa ataque, nota y liberación como si manejaras un arco invisible.</li>
+          <li><strong>Ajusta el espacio, no tu cuerpo.</strong> Si seis octavas resultan demasiado sensibles, elige “Webcam cómoda” o calibra una zona más amplia antes de forzar movimientos pequeños.</li>
+        </ol>
+        <div class="callout">
+          <strong>Idea fundamental</strong>
+          <p>La derecha decide <em>qué frecuencia</em> suena; la izquierda decide <em>cuándo y con qué fraseo</em>. Ensaya ambas tareas por separado antes de coordinarlas.</p>
+        </div>
+        <h3>Lista previa de 30 segundos</h3>
+        <div class="checklist" aria-label="Preparación rápida">
+          <label><input type="checkbox" data-practice-check /> <span>Luz frontal uniforme; sin una ventana brillante detrás.</span></label>
+          <label><input type="checkbox" data-practice-check /> <span>Cuerpo, antebrazos y las dos manos caben completos en la imagen.</span></label>
+          <label><input type="checkbox" data-practice-check /> <span>Salida de audio correcta y volumen físico moderado.</span></label>
+          <label><input type="checkbox" data-practice-check /> <span>Escala Libre y perfil Concierto completo para el comportamiento clásico.</span></label>
+          <label><input type="checkbox" data-practice-check /> <span>Hombros sueltos, muñecas neutras y espacio para moverte sin obstáculos.</span></label>
+        </div>
+        <output class="checklist-status" data-checklist-output aria-live="polite">0/5 preparado</output>
+      </section>
+
+      <section class="doc-section" id="preparar-espacio" data-search-item>
+        <h2>Preparar el espacio y la cámara</h2>
+        <div class="card-grid">
+          <article class="info-card">
+            <span class="info-card__number" aria-hidden="true">L</span>
+            <h3>Luz</h3>
+            <p>Usa una fuente amplia delante de ti. Evita contraluz, parpadeo de luminarias baratas y sombras duras sobre los dedos. La piel no necesita un fondo verde; sí necesita contraste estable.</p>
+          </article>
+          <article class="info-card">
+            <span class="info-card__number" aria-hidden="true">C</span>
+            <h3>Composición</h3>
+            <p>Coloca la cámara aproximadamente a la altura del pecho o de los hombros. Reserva margen arriba y abajo: ese recorrido vertical es tu “antena” de tono.</p>
+          </article>
+          <article class="info-card">
+            <span class="info-card__number" aria-hidden="true">S</span>
+            <h3>Sonido</h3>
+            <p>Los auriculares con cable reducen retardo; unos monitores o altavoces con buen grave permiten oír mejor Do1. Muchos portátiles no reproducen con autoridad 32,7 Hz.</p>
+          </article>
+          <article class="info-card">
+            <span class="info-card__number" aria-hidden="true">P</span>
+            <h3>Postura</h3>
+            <p>Aléjate lo suficiente para no llegar a los bordes de la imagen. Mantén el codo derecho estable y deja que el antebrazo haga cambios amplios; reserva movimientos pequeños para afinación y vibrato.</p>
+          </article>
+        </div>
+        <h3>Qué afecta al seguimiento</h3>
+        <div class="table-wrap">
+          <table>
+            <caption>Condiciones visuales y respuesta recomendada</caption>
+            <thead><tr><th scope="col">Situación</th><th scope="col">Síntoma</th><th scope="col">Corrección</th></tr></thead>
+            <tbody>
+              <tr><td>Manos se cruzan o tapan</td><td>Una mano desaparece brevemente</td><td>Separa planos y alturas; la app conserva roles, pero ninguna cámara ve a través de la otra mano.</td></tr>
+              <tr><td>Fondo muy parecido a la piel</td><td>Landmarks inestables</td><td>Cambia el ángulo o añade una luz lateral suave.</td></tr>
+              <tr><td>Poca luz</td><td>FPS bajo y movimiento borroso</td><td>Aumenta luz real antes de subir la exposición automática.</td></tr>
+              <tr><td>Mano junto al borde</td><td>El tono se pega al extremo</td><td>Calibra una zona interior y evita salir del encuadre.</td></tr>
+              <tr><td>Bluetooth</td><td>La nota llega tarde</td><td>Prueba cable o altavoz interno para separar latencia de audio y latencia visual.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warning">
+          <strong>Seguridad auditiva</strong>
+          <p>Empieza con volumen físico bajo. Un gesto accidental puede recorrer varias octavas; el limitador protege picos técnicos, no sustituye un nivel de escucha prudente.</p>
+        </div>
+      </section>
+
+      <section class="doc-section" id="lenguaje-gestual" data-search-item>
+        <h2>El lenguaje gestual</h2>
+        <p>La imagen está espejada para comportarse como un espejo, pero el motor conserva cada rol por trayectoria espacial. El eje horizontal ayuda a identificar manos; <strong>no altera el tono</strong>.</p>
+        <div class="card-grid three">
+          <article class="info-card">
+            <h3>Clásico · derecha</h3>
+            <p>El centro de la palma controla frecuencia. Arriba = agudo; abajo = grave. La relación es logarítmica: la misma distancia visual equivale al mismo intervalo musical.</p>
+          </article>
+          <article class="info-card">
+            <h3>Clásico · izquierda</h3>
+            <p>La altura controla la ganancia. Acércala a la zona calibrada de silencio para cortar y a la zona forte para abrir. Es el equivalente funcional de la antena de volumen.</p>
+          </article>
+          <article class="info-card">
+            <h3>Dúo · ambas manos</h3>
+            <p>Cada palma controla una voz y la distancia pulgar–índice regula su volumen. Izquierda: Do2–Do4; derecha: Do4–Do6.</p>
+          </article>
+        </div>
+        <h3>Gestos musicales</h3>
+        <dl>
+          <dt><strong>Glissando</strong></dt><dd>Desplazamiento vertical continuo. En Libre pasa por todas las frecuencias intermedias.</dd>
+          <dt><strong>Portamento</strong></dt><dd>Glissando intencionadamente lento entre dos notas. “Inercia del tono” prolonga el enlace, pero no crea la continuidad: el puente entre fotogramas siempre está activo.</dd>
+          <dt><strong>Vibrato</strong></dt><dd>Oscilación vertical pequeña y regular alrededor del centro de afinación. Rockmore no añade vibrato automático.</dd>
+          <dt><strong>Legato</strong></dt><dd>Mantén volumen abierto mientras la derecha conecta alturas.</dd>
+          <dt><strong>Staccato</strong></dt><dd>Corta y abre rápidamente con la izquierda sin mover la derecha de su nota.</dd>
+          <dt><strong>Dinámica</strong></dt><dd>Modela cada ataque y salida con la izquierda; evita dejar el volumen permanentemente al máximo.</dd>
+        </dl>
+        <div class="callout">
+          <strong>Diferencia con una antena física</strong>
+          <p>Un theremin clásico mide capacitancia y responde sobre todo a la distancia mano–antena. Theremin Web mide la palma con una cámara y traduce su altura. La gramática musical —campo continuo, dos manos independientes y ausencia de trastes— se conserva; el mecanismo físico no.</p>
+        </div>
+      </section>
+
+      <section class="doc-section" id="controles" data-search-item>
+        <h2>Todos los controles de la aplicación</h2>
+        <h3>Barra superior</h3>
+        <ul>
+          <li><strong>Cámara:</strong> cambia de dispositivo. El motor silencia antes del cambio y vuelve a asociar las manos.</li>
+          <li><strong>Reiniciar:</strong> reconstruye sesión, cámara y audio conservando los ajustes guardados.</li>
+          <li><strong>Detener:</strong> libera cámara, AudioContext y temporizadores; vuelve a la pantalla inicial.</li>
+          <li><strong>FPS / latencia:</strong> FPS es una media del seguimiento. La latencia mostrada corresponde a la salida Web Audio declarada por el navegador, no a todo el trayecto cámara→sonido.</li>
+        </ul>
+        <h3>Panel principal</h3>
+        <div class="table-wrap">
+          <table>
+            <caption>Controles sonoros e interpretativos</caption>
+            <thead><tr><th scope="col">Control</th><th scope="col">Qué modifica</th><th scope="col">Cuándo usarlo</th></tr></thead>
+            <tbody>
+              <tr><td>Modo</td><td>Clásico: tono + volumen separados. Dúo: dos voces.</td><td>Clásico para repertorio; Dúo para contrapunto y texturas.</td></tr>
+              <tr><td>Sonido</td><td>Fuente, filtros, vibrato automático, cabinet, reverb y eco base.</td><td>Cambia el carácter sin cambiar la afinación.</td></tr>
+              <tr><td>Escala</td><td>Libre o atracción suave a notas cuando la mano se detiene.</td><td>Libre para theremin auténtico; escalas para apoyo tonal.</td></tr>
+              <tr><td>Tónica</td><td>Desplaza Mayor, menor y Pentatónica.</td><td>No afecta a Libre; en Cromática todas las notas siguen presentes.</td></tr>
+              <tr><td>Reverb</td><td>Cantidad enviada a la sala sintética.</td><td>12 % para concierto íntimo; más para paisajes, menos para estudio seco.</td></tr>
+              <tr><td>Grabación</td><td>Captura solo la mezcla sintetizada.</td><td>Pulsa una vez para iniciar y otra para cerrar el archivo.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Configuración interpretativa</h3>
+        <ul>
+          <li><strong>Perfil de ejecución:</strong> combina rango y tiempos de respuesta; al editar un valor pasa a Personalizado.</li>
+          <li><strong>Frecuencia mínima/máxima:</strong> límites exactos entre 16 y 5000 Hz, con separación válida.</li>
+          <li><strong>Extensión:</strong> de 1 a 7 octavas en pasos de media octava; los botones −/+ conservan el grave y recalculan el agudo.</li>
+          <li><strong>Inercia del tono:</strong> 3–100 ms en interfaz. Aumentarla hace el movimiento más flotante; no cuantiza.</li>
+          <li><strong>Respuesta del volumen:</strong> 5–150 ms. Menos = ataques rápidos; más = fraseo redondeado.</li>
+          <li><strong>Cabinet 1929:</strong> activa la ruta de altavoz histórico modelado.</li>
+          <li><strong>Cargar IR real:</strong> decodifica localmente un archivo de respuesta al impulso y lo usa en la rama del cabinet.</li>
+          <li><strong>Restablecer ajustes:</strong> borra preferencias v5 y la migración anterior; no borra archivos que ya hayas descargado.</li>
+        </ul>
+      </section>
+
+      <section class="doc-section" id="sonidos-rangos" data-search-item>
+        <h2>Sonidos, escalas y extensión</h2>
+        <h3>Presets sonoros</h3>
+        <div class="card-grid">
+          <article class="info-card"><h3>Rockmore · predeterminado</h3><p>Centro vocal, grave rico, agudo progresivamente puro, cabinet y sala al 12 %. Sin vibrato automático: el gesto conserva la expresividad.</p></article>
+          <article class="info-card"><h3>RCA/Rockmore directo</h3><p>La misma familia histórica sin cabinet por defecto y con ambiente mínimo. Útil para oír el motor antes de la coloración de altavoz.</p></article>
+          <article class="info-card"><h3>RCA + Cabinet 1929</h3><p>Filtros, saturación y compresión modelan el amplificador, altavoz y caja. Es una aproximación, no una medición de un RCA 106 concreto.</p></article>
+          <article class="info-card"><h3>Ciencia ficción moderna</h3><p>Pulso brillante, vibrato automático retardado de 5,8 Hz / 34 cents, hall y eco. Evoca la tradición cinematográfica, no el concierto de Rockmore.</p></article>
+          <article class="info-card"><h3>Órbita prismática</h3><p>Parciales discontinuos, quinta 3:2, octava ligeramente abierta, movimiento lento y eco de 243 ms. Diseñado para descubrir, no para imitar.</p></article>
+        </div>
+        <h3>Perfiles de ejecución</h3>
+        <div class="table-wrap">
+          <table>
+            <caption>Rangos configurados en modo Clásico</caption>
+            <thead><tr><th scope="col">Perfil</th><th scope="col">Rango</th><th scope="col">Extensión</th><th scope="col">Tono / volumen</th></tr></thead>
+            <tbody>
+              <tr><td>Concierto completo</td><td>32,703–2093,005 Hz</td><td>Do1–Do7 · 6 oct</td><td>10 / 18 ms</td></tr>
+              <tr><td>RCA 1929</td><td>123,47–1396,91 Hz</td><td>Si2–Fa6 · ≈3,5 oct</td><td>14 / 55 ms</td></tr>
+              <tr><td>Rockmore estable</td><td>65,41–2093 Hz</td><td>Do2–Do7 · 5 oct</td><td>10 / 18 ms</td></tr>
+              <tr><td>Webcam cómoda</td><td>130,81–1046,5 Hz</td><td>Do3–Do6 · 3 oct</td><td>24 / 35 ms</td></tr>
+              <tr><td>Personalizado</td><td>16–5000 Hz permitidos</td><td>1–7 oct en el deslizador</td><td>3–100 / 5–150 ms</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Libre frente a escalas</h3>
+        <p><strong>Libre</strong> aplica una identidad matemática: la frecuencia mapeada pasa al motor sin redondeo MIDI. Cromática, Pentatónica, Mayor y menor conservan el glissando durante el movimiento y atraen gradualmente hacia una nota compatible cuando la velocidad baja.</p>
+        <div class="callout warning">
+          <strong>No confundir asistencia con trastes</strong>
+          <p>Una escala no convierte el instrumento en teclado. La atracción depende de velocidad y tarda en asentarse; si necesitas un barrido absolutamente continuo, vuelve a Libre.</p>
+        </div>
+      </section>
+
+      <section class="doc-section" id="calibracion" data-search-item>
+        <h2>Calibración de cuatro poses</h2>
+        <p class="lead">La calibración adapta el campo de la cámara a tu postura real. No cambia el timbre ni las frecuencias elegidas: define qué zonas visuales representan cada extremo.</p>
+        <ol class="steps">
+          <li><strong>Grave.</strong> Sitúa la mano derecha en el punto bajo que puedas repetir cómodamente y mantenla quieta durante la captura.</li>
+          <li><strong>Agudo.</strong> Llévala al punto alto sin elevar el hombro ni salir del encuadre.</li>
+          <li><strong>Silencio.</strong> Coloca la izquierda donde quieras cerrar la frase.</li>
+          <li><strong>Forte.</strong> Colócala en el máximo cómodo de apertura dinámica.</li>
+        </ol>
+        <p>Cada pose recoge muestras durante aproximadamente 340 ms y usa la mediana, que resiste valores aislados. Para seis octavas, la app exige un recorrido vertical mayor que para tres; una zona demasiado estrecha se rechaza para evitar una afinación impracticable.</p>
+        <h3>Calibrar bien</h3>
+        <ul>
+          <li>Captura posiciones reproducibles, no extremos anatómicos.</li>
+          <li>Mantén al menos seis muestras visibles y evita mover la cámara durante el proceso.</li>
+          <li>Puedes invertir el gesto de volumen: se normaliza la pareja silencio/forte.</li>
+          <li>Si cambias cámara, encuadre, distancia o extensión radicalmente, calibra de nuevo.</li>
+          <li>La calibración se guarda en el navegador; no viaja entre dispositivos ni perfiles privados.</li>
+        </ul>
+        <details>
+          <summary>¿Por qué no comprimir seis octavas en unos pocos centímetros?</summary>
+          <p>Cada semitono ocuparía muy pocos píxeles y el ruido normal de detección se convertiría en varios cents. Un campo más amplio da resolución espacial, reduce tensión y facilita vibrato controlado.</p>
+        </details>
+        <details>
+          <summary>¿Qué ocurre si una mano desaparece?</summary>
+          <p>Una pérdida breve conserva la trayectoria durante 110 ms. Después se silencia y reinicia el filtro. Si dejan de llegar fotogramas por completo, un watchdog apaga ambas voces tras el umbral de seguridad.</p>
+        </details>
+      </section>
+
+      <section class="doc-section" id="interpretacion" data-search-item>
+        <h2>Técnica interpretativa</h2>
+        <h3>Encontrar notas sin referencias físicas</h3>
+        <p>Escucha el destino antes de moverte. Desplaza la derecha con velocidad decidida, frena cerca de la altura y corrige con movimientos pequeños. En escala Libre, el oído es la referencia; el panel de Entrenamiento puede mostrar cents, estabilidad y vibrato sin alterar el sonido.</p>
+        <div class="card-grid">
+          <article class="info-card">
+            <h3>Ataque limpio</h3>
+            <ol><li>Cierra volumen.</li><li>Busca la altura con la derecha.</li><li>Abre la izquierda sin desplazar el cuerpo.</li></ol>
+          </article>
+          <article class="info-card">
+            <h3>Cambio legato</h3>
+            <ol><li>Mantén volumen.</li><li>Conecta alturas en un arco vertical.</li><li>Frena sin bloquear la muñeca.</li></ol>
+          </article>
+          <article class="info-card">
+            <h3>Cambio separado</h3>
+            <ol><li>Cierra volumen.</li><li>Reposiciona tono en silencio.</li><li>Abre con el carácter del nuevo ataque.</li></ol>
+          </article>
+          <article class="info-card">
+            <h3>Vibrato consciente</h3>
+            <ol><li>Afina el centro.</li><li>Oscila poco y regular.</li><li>Cambia anchura y velocidad según la frase, no por hábito.</li></ol>
+          </article>
+        </div>
+        <h3>Ejercicio de cinco minutos</h3>
+        <ol class="steps">
+          <li>Sostén una frecuencia 10 s sin vibrato; observa estabilidad, luego repite sin mirar.</li>
+          <li>Haz glissandi de una octava a velocidad constante y escucha si el recorrido parece uniforme.</li>
+          <li>Alterna dos alturas con volumen cerrado durante el viaje y ataque en destino.</li>
+          <li>Sostén una nota y dibuja tres vibratos: estrecho/lento, estrecho/rápido, ancho/lento.</li>
+          <li>Toca una frase corta y grábala; evalúa ataque, centro de afinación y final de cada nota por separado.</li>
+        </ol>
+        <div class="callout">
+          <strong>Modo entrenamiento</strong>
+          <p>Los cents se calculan frente al semitono temperado más próximo. “Estabilidad” es dispersión en una ventana reciente y “vibrato” estima oscilaciones: son ayudas, no un juicio musical.</p>
+        </div>
+      </section>
+
+      <section class="doc-section" id="practica" data-search-item>
+        <h2>Rutas de práctica según tu objetivo</h2>
+        <div data-tab-group>
+          <div class="tab-list" role="tablist" aria-label="Objetivos de práctica">
+            <button type="button" role="tab" data-tab="inicio" class="is-active">Primer día</button>
+            <button type="button" role="tab" data-tab="concierto">Interpretación</button>
+            <button type="button" role="tab" data-tab="experimental">Experimental</button>
+          </div>
+          <article class="tab-panel" role="tabpanel" data-tab-panel="inicio">
+            <h3>Control antes que extensión</h3>
+            <p>Elige Webcam cómoda, Libre, Rockmore y reverb 8–12 %. Practica ataques con una sola altura, después intervalos pequeños. Cuando tres octavas sean predecibles, amplía de media en media.</p>
+          </article>
+          <article class="tab-panel" role="tabpanel" data-tab-panel="concierto" hidden>
+            <h3>Fraseo clásico</h3>
+            <p>Usa Rockmore estable o Concierto completo, escala Libre, Cabinet activo y sala 8–16 %. Calibra antes de cada sesión importante. Trabaja con drone externo o referencia afinada, pero retíralos al consolidar la memoria espacial.</p>
+          </article>
+          <article class="tab-panel" role="tabpanel" data-tab-panel="experimental" hidden>
+            <h3>Diseñar comportamiento</h3>
+            <p>Parte de Órbita prismática, prueba 4–5 octavas, aumenta inercia a 30–60 ms y explora XY lentamente. Graba gestos que no puedas repetir a mano y reprodúcelos como material compositivo.</p>
+          </article>
+        </div>
+        <h3>Consejos de repertorio</h3>
+        <ul>
+          <li>Transcribe primero melodías cantables con saltos moderados; el theremin revela cada transición.</li>
+          <li>Marca respiraciones con la mano izquierda aunque no necesites tomar aire.</li>
+          <li>En graves, reduce vibrato y deja espacio a los armónicos; en agudos, evita exceso de reverb.</li>
+          <li>No persigas visualmente cada nota: usa la pantalla para diagnóstico y el oído para interpretar.</li>
+        </ul>
+      </section>
+
+      <section class="doc-section" id="laboratorio" data-search-item>
+        <h2>Laboratorio creativo</h2>
+        <p class="lead">El laboratorio no sustituye los presets: los deforma de forma continua y permite capturar movimientos como datos.</p>
+        <div class="table-wrap">
+          <table>
+            <caption>Herramientas creativas</caption>
+            <thead><tr><th scope="col">Herramienta</th><th scope="col">Función</th><th scope="col">Idea musical</th></tr></thead>
+            <tbody>
+              <tr><td>Carácter X</td><td>Funde la voz activa hacia Órbita prismática.</td><td>Cambia de una línea vocal a un espectro hueco dentro de una nota sostenida.</td></tr>
+              <tr><td>Espacio Y</td><td>Añade reverb y eco sobre la base del preset.</td><td>Aleja finales de frase o crea perspectivas sin cambiar la altura.</td></tr>
+              <tr><td>Congelar nota</td><td>Mantiene la última frecuencia de la voz derecha; el volumen sigue siendo articulable.</td><td>Drone para afinación, pedal tonal o capa inmóvil.</td></tr>
+              <tr><td>Grabar gestos</td><td>Registra tiempo, frecuencia, amplitud y preset a un máximo de 30 Hz.</td><td>Captura un movimiento imposible de anotar.</td></tr>
+              <tr><td>Reproducir</td><td>Automatiza la voz derecha con el gesto capturado.</td><td>Interpreta con la otra mano/voz sobre una trayectoria previa.</td></tr>
+              <tr><td>Importar/exportar JSON</td><td>Intercambia hasta 18 000 eventos de gesto.</td><td>Archiva estudios o transforma datos fuera de la app.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Tres recetas insólitas</h3>
+        <details open>
+          <summary>Órbita respirante</summary>
+          <p>Experimental · 4 octavas · inercia 45 ms · X 65 % · Y 45 %. Sostén una quinta lenta y articula pulsos irregulares con la izquierda.</p>
+        </details>
+        <details>
+          <summary>Coro espectral de dos manos</summary>
+          <p>Modo Dúo · Rockmore · escala Pentatónica · reverb 28 %. Mantén una mano como pedal y dibuja movimientos contrarios con la otra.</p>
+        </details>
+        <details>
+          <summary>Señal de otro planeta</summary>
+          <p>Sci‑Fi · Libre · 5,5 octavas · inercia 70 ms · Y 70 %. Abre volumen después de alcanzar la nota para que el vibrato automático aparezca con retardo.</p>
+        </details>
+      </section>
+
+      <section class="doc-section" id="grabacion" data-search-item>
+        <h2>Grabación, descarga y archivos</h2>
+        <p>La grabadora recibe la mezcla después de voces, cabinet, espacio, limitador y master. No graba vídeo, micrófono ni sonido ambiente.</p>
+        <ol class="steps">
+          <li>Pulsa el botón circular rojo. El contador confirma que MediaRecorder está recibiendo audio.</li>
+          <li>Interpreta y vuelve a pulsar para detener. El archivo comprimido aparece en el reproductor.</li>
+          <li>Descarga el original o genera WAV PCM de 16 bits. La conversión conserva frecuencia de muestreo y canales que el navegador haya decodificado.</li>
+          <li>En dispositivos compatibles, “Compartir” abre el panel del sistema. Nada sale del dispositivo hasta esa acción explícita.</li>
+        </ol>
+        <div class="callout warning">
+          <strong>Memoria</strong>
+          <p>No existe un límite de duración impuesto por la app: la sesión se conserva en memoria hasta detenerla. Para tomas largas, divide por movimientos y descarga cada una.</p>
+        </div>
+        <h3>Gestos JSON frente a audio</h3>
+        <p>El audio conserva el resultado audible. El JSON conserva una trayectoria editable de frecuencia, amplitud, tiempo y preset. No son intercambiables: importa JSON para reinterpretar; importa audio en un editor para mezclar.</p>
+      </section>
+
+      <section class="doc-section" id="problemas" data-search-item>
+        <h2>Solución de problemas por síntomas</h2>
+        <details open>
+          <summary>La cámara no aparece o el permiso fue denegado</summary>
+          <p>Comprueba que usas HTTPS o localhost, cierra otras apps que monopolizan la cámara y restablece el permiso del sitio. En iOS, abre la página en Safari normal, no dentro del navegador embebido de otra aplicación.</p>
+        </details>
+        <details>
+          <summary>La app ve mis manos pero no suena</summary>
+          <p>Pulsa EMPEZAR mediante un gesto real, verifica la salida de audio del sistema y abre volumen con la izquierda en Clásico. Si el AudioContext quedó suspendido al cambiar de pestaña, vuelve y pulsa Reiniciar.</p>
+        </details>
+        <details>
+          <summary>El tono parece ir a saltos</summary>
+          <p>Confirma escala Libre. Aumenta luz para recuperar FPS, evita Bluetooth y comprueba que no estés oyendo el “afina al parar” de una escala. El motor interpola cada objetivo de cámara; una detección visual muy irregular puede seguir sentirse imprecisa aunque la señal sea continua.</p>
+        </details>
+        <details>
+          <summary>El tono tiembla cuando intento sostenerlo</summary>
+          <p>Amplía el recorrido calibrado, reduce octavas, estabiliza codo y hombro y mejora luz. Prueba Webcam cómoda para separar jitter de técnica. El filtro One Euro suaviza, pero no debe borrar un vibrato deliberado.</p>
+        </details>
+        <details>
+          <summary>Las manos intercambian su función</summary>
+          <p>Entra con ellas separadas y evita cruces largos u oclusiones completas. La asociación temporal sobrevive cruces normales, pero necesita volver a observar cada palma.</p>
+        </details>
+        <details>
+          <summary>No oigo Do1</summary>
+          <p>32,7 Hz está por debajo de la respuesta útil de muchos teléfonos y portátiles. Sube a Rockmore estable o conecta altavoces/auriculares capaces de reproducir subgrave; no aumentes volumen de forma brusca.</p>
+        </details>
+        <details>
+          <summary>Una IR no carga o suena extraña</summary>
+          <p>Usa WAV/AIFF sin protección y de duración razonable. La IR se procesa localmente y complementa la cadena previa del cabinet; una IR ya ecualizada o muy larga puede duplicar coloración y cola.</p>
+        </details>
+        <details>
+          <summary>El rendimiento cae con el tiempo</summary>
+          <p>Cierra pestañas pesadas, reduce resolución desde la configuración del sistema si es posible, evita modo ahorro y reinicia. El motor intenta GPU y pasa a CPU si la delegación falla; el indicador FPS ayuda a reconocer el cambio.</p>
+        </details>
+        <details>
+          <summary>Quiero volver al estado inicial</summary>
+          <p>“Restablecer ajustes” borra configuración y calibración guardadas. Después pulsa Detener y EMPEZAR para reconstruir cámara y audio con Rockmore, Libre y Do1–Do7.</p>
+        </details>
+        <p>Para límites, fallbacks y valores exactos, consulta las <a href="especificaciones.html#compatibilidad">especificaciones de compatibilidad</a>.</p>
+      </section>
+
+      <section class="doc-section" id="privacidad" data-search-item>
+        <h2>Privacidad, accesibilidad y uso responsable</h2>
+        <div class="card-grid">
+          <article class="info-card"><h3>Vídeo local</h3><p>La cámara se entrega al modelo dentro del navegador. La app no incorpora backend, analítica, telemetría, XHR, WebSocket ni subida de fotogramas.</p></article>
+          <article class="info-card"><h3>Dependencias de red</h3><p>En el primer arranque se descargan MediaPipe/WASM desde jsDelivr y el modelo de manos desde Google Storage. Por eso no es completamente offline.</p></article>
+          <article class="info-card"><h3>Datos persistentes</h3><p>Ajustes y calibración viven en localStorage sin cifrado. IR, gestos y grabaciones permanecen locales salvo descarga o uso explícito de Compartir.</p></article>
+          <article class="info-card"><h3>Acceso físico</h3><p>Adapta rango, calibración y respuesta a tu movilidad. No existe una única postura “correcta”; la técnica debe evitar dolor y fatiga.</p></article>
+        </div>
+        <h3>Teclado y lectura</h3>
+        <p>Los documentos son navegables por teclado, ofrecen salto al contenido, foco visible, índice semántico, modo de impresión y reducción de movimiento. En la app, los controles estándar admiten teclado, pero la interpretación musical requiere una cámara y gestos de mano.</p>
+        <div class="callout danger">
+          <strong>Si aparece dolor</strong>
+          <p>Detén la sesión, baja brazos y descansa. Reduce extensión o cambia encuadre. La precisión nunca justifica mantener hombros elevados ni una muñeca forzada.</p>
+        </div>
+      </section>
+
+      <section class="doc-section" id="referencia" data-search-item>
+        <h2>Referencia rápida</h2>
+        <div class="table-wrap">
+          <table>
+            <caption>Configuración de partida por objetivo</caption>
+            <thead><tr><th scope="col">Objetivo</th><th scope="col">Sonido</th><th scope="col">Perfil</th><th scope="col">Escala</th><th scope="col">Espacio</th></tr></thead>
+            <tbody>
+              <tr><td>Theremin de concierto</td><td>Rockmore</td><td>Concierto completo o Rockmore estable</td><td>Libre</td><td>8–16 %</td></tr>
+              <tr><td>RCA doméstico 1929</td><td>RCA + Cabinet</td><td>RCA 1929</td><td>Libre</td><td>5–12 %</td></tr>
+              <tr><td>Aprendizaje</td><td>Rockmore</td><td>Webcam cómoda</td><td>Cromática o Libre</td><td>5–10 %</td></tr>
+              <tr><td>Ciencia ficción</td><td>Sci‑Fi</td><td>3–5 octavas</td><td>Libre / menor</td><td>30–50 %</td></tr>
+              <tr><td>Improvisación extraña</td><td>Órbita</td><td>Personalizado</td><td>Pentatónica / Libre</td><td>25–60 % + XY</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>Regla de oro:</strong> si algo se siente demasiado sensible, amplía el gesto o reduce octavas antes de aumentar el filtrado. Si algo se siente lento, prueba audio con cable y más luz antes de reducir toda la inercia.</p>
+        <p>Continúa con <a href="historia.html">la historia del theremin</a> o consulta <a href="especificaciones.html">la especificación técnica completa</a>.</p>
+      </section>
+
+      <footer class="docs-footer">
+        <p>Manual correspondiente a Theremin Web 3 · actualizado en julio de 2026. Los valores descritos proceden de la implementación actual.</p>
+        <nav aria-label="Navegación final"><a href="../index.html">Volver al instrumento</a><a href="historia.html">Historia</a><a href="especificaciones.html">Especificaciones</a></nav>
+      </footer>
+    </main>
+  </div>
+
+  <button class="back-top" type="button" data-back-top aria-label="Volver arriba">↑</button>
+</body>
+</html>

@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Historia documentada e interactiva del theremin: Termen, RCA 1929, Clara Rockmore, cine, Bob Moog, era digital y Theremin Web." />
+  <meta name="theme-color" content="#071011" />
+  <title>Historia del theremin · Theremin Web</title>
+  <link rel="stylesheet" href="docs.css" />
+  <script src="docs.js" defer></script>
+</head>
+<body data-document="historia">
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+  <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
+
+  <header class="docs-header">
+    <div class="docs-header__inner">
+      <a class="docs-brand" href="../index.html" aria-label="Volver a Theremin Web">
+        <span class="docs-brand__mark" aria-hidden="true">TW</span>
+        <span class="docs-brand__text">Theremin Web · Documentación</span>
+      </a>
+      <nav class="docs-switcher" aria-label="Colección documental">
+        <a href="manual.html">Manual</a>
+        <a href="historia.html" aria-current="page">Historia</a>
+        <a href="especificaciones.html">Especificaciones</a>
+      </nav>
+      <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="docsSidebar" aria-label="Abrir índice">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="docs-layout">
+    <aside class="docs-sidebar" id="docsSidebar" aria-label="Índice y búsqueda">
+      <div class="docs-search">
+        <label for="docSearch">Buscar en la historia</label>
+        <input id="docSearch" type="search" data-doc-search placeholder="Ej.: RCA, Rockmore…" autocomplete="off" />
+        <div class="search-results" data-search-results role="status" aria-live="polite" hidden></div>
+      </div>
+      <p class="toc-label">En esta página</p>
+      <nav class="toc" aria-label="Índice histórico">
+        <a href="#como-leer">Cómo leer esta historia</a>
+        <a href="#principio">El principio del instrumento</a>
+        <a href="#cronologia">Cronología 1896–2026</a>
+        <a href="#rca-1929">RCA 1929</a>
+        <a href="#clara-rockmore">Clara Rockmore</a>
+        <a href="#repertorio-cine">Concierto y cine</a>
+        <a href="#bob-moog">Bob Moog y el renacimiento</a>
+        <a href="#era-digital">Siglo XXI y era digital</a>
+        <a href="#theremin-web">El salto a Theremin Web</a>
+        <a href="#mitos">Mitos y precisiones</a>
+        <a href="#fuentes">Fuentes comentadas</a>
+      </nav>
+      <div class="sidebar-tools"><button type="button" data-print>Imprimir / PDF</button></div>
+    </aside>
+
+    <main class="docs-main" id="contenido">
+      <header class="docs-hero">
+        <p class="eyebrow">Documento 02 · Historia documentada</p>
+        <h1>Un siglo tocando el aire</h1>
+        <p class="hero-lede">
+          De los osciladores de laboratorio de Lev Termen a un instrumento de cámara en el navegador:
+          una historia de ingeniería, virtuosismo, publicidad, cine, pedagogía y reinvención digital.
+        </p>
+        <div class="hero-meta" aria-label="Resumen del documento"><span>1896–2026</span><span>Fuentes primarias</span><span>Cronología filtrable</span><span>Mitos aclarados</span></div>
+      </header>
+
+      <nav class="chapter-map" aria-label="Atajos históricos">
+        <a href="#principio"><small>01 · Origen</small><strong>Capacitancia, heterodinia y gesto</strong></a>
+        <a href="#rca-1929"><small>02 · Industria</small><strong>La apuesta doméstica de RCA</strong></a>
+        <a href="#clara-rockmore"><small>03 · Arte</small><strong>Rockmore lo convierte en voz solista</strong></a>
+        <a href="#repertorio-cine"><small>04 · Imaginario</small><strong>De la sala al espacio exterior</strong></a>
+        <a href="#bob-moog"><small>05 · Renacimiento</small><strong>Moog: del kit al instrumento moderno</strong></a>
+        <a href="#theremin-web"><small>06 · Presente</small><strong>El principio interpretativo llega a la web</strong></a>
+      </nav>
+
+      <section class="doc-section" id="como-leer" data-search-item>
+        <h2>Cómo leer esta historia</h2>
+        <p class="lead">La biografía del theremin está llena de relatos repetidos, fechas incompatibles y publicidad convertida en hecho. Aquí se separan prototipo, presentación pública, patente, producto comercial e influencia cultural.</p>
+        <div class="card-grid three">
+          <article class="info-card"><h3>Hecho verificable</h3><p>Fecha o especificación sostenida por patente, archivo institucional, manual original, programa de concierto o catálogo de museo.</p></article>
+          <article class="info-card"><h3>Consenso razonable</h3><p>Relato concordante en varias fuentes fiables, aunque falte un único documento definitivo.</p></article>
+          <article class="info-card"><h3>Relato discutido</h3><p>Se presenta como tal: por ejemplo, las circunstancias del regreso de Theremin a la URSS en 1938.</p></article>
+        </div>
+        <div class="callout warning"><strong>Una precisión organológica</strong><p>El Telharmonium, los experimentos con arco cantante y el Audion Piano preceden al theremin. Es más riguroso llamarlo <strong>uno de los primeros instrumentos plenamente electrónicos, el primero célebre por tocarse sin contacto y uno de los primeros fabricados comercialmente</strong>.</p></div>
+        <p>Las fechas 1918, 1919 y 1920 pueden describir fases distintas: observación del fenómeno, prototipo y presentación reconocible. La fórmula prudente es «desarrollado hacia 1919–1920 y presentado públicamente en 1920».</p>
+      </section>
+
+      <section class="doc-section" id="principio" data-search-item>
+        <h2>El principio: convertir proximidad en música</h2>
+        <p>Lev Serguéievich Termen —Léon Theremin en Occidente— trabajaba con osciladores de radiofrecuencia cuando observó que la presencia de su cuerpo alteraba la frecuencia del circuito. Como violonchelista, reconoció una posibilidad musical: usar esa variación no como error, sino como interfaz.</p>
+        <div class="signal-chain" role="img" aria-label="Cadena de funcionamiento de un theremin heterodino clásico">
+          <div class="signal-node"><strong>Mano</strong><small>capacitancia corporal</small></div>
+          <div class="signal-node"><strong>Antena</strong><small>electrodo de control</small></div>
+          <div class="signal-node"><strong>Oscilador variable</strong><small>radiofrecuencia</small></div>
+          <div class="signal-node"><strong>Heterodinia</strong><small>diferencia audible</small></div>
+          <div class="signal-node"><strong>VCA / altavoz</strong><small>volumen y sonido</small></div>
+        </div>
+        <p>Dos osciladores trabajan por encima del oído: uno fijo y otro alterado por la mano. Al mezclarlos aparece la diferencia entre ambos, ya dentro del rango audible. Una segunda antena controla volumen. Las antenas no “emiten música al aire”; son electrodos sensibles a cambios minúsculos de capacitancia.</p>
+        <p>La <a href="https://patents.google.com/patent/US1661058A/en" target="_blank" rel="noopener noreferrer">patente estadounidense US1661058A</a>, solicitada en 1925 y concedida en 1928, describe control sin contacto de tono, volumen y timbre mediante el campo alrededor de electrodos. Su ambición ya era expresiva: graduaciones delicadas y posibilidad de evocar voz e instrumentos conocidos.</p>
+        <div class="callout"><strong>La invención decisiva no fue solo un sonido</strong><p>Fue una relación nueva: el cuerpo se convierte en parte del circuito y el espacio deja de ser vacío para convertirse en superficie musical continua.</p></div>
+      </section>
+
+      <section class="doc-section" id="cronologia" data-search-item>
+        <h2>Cronología interactiva · 1896–2026</h2>
+        <p>Filtra por época. Los enlaces abren la fuente institucional o primaria más útil para cada hito.</p>
+        <div class="era-filter" role="group" aria-label="Filtrar cronología por época">
+          <button type="button" class="is-active" data-era-filter="all" aria-pressed="true">Todo</button>
+          <button type="button" data-era-filter="origen" aria-pressed="false">Orígenes</button>
+          <button type="button" data-era-filter="concierto" aria-pressed="false">Concierto</button>
+          <button type="button" data-era-filter="pantalla" aria-pressed="false">Pantalla</button>
+          <button type="button" data-era-filter="moderno" aria-pressed="false">Renacimiento</button>
+          <button type="button" data-era-filter="web" aria-pressed="false">Era web</button>
+          <span class="era-status" data-era-status aria-live="polite">27 hitos visibles</span>
+        </div>
+        <ol class="timeline">
+          <li data-era="origen"><time datetime="1896">1896</time><h3>Nace Lev Termen</h3><p>Físico, ingeniero y violonchelista ruso; la fecha puede aparecer desplazada por el cambio de calendario.</p></li>
+          <li data-era="origen"><time datetime="1920">1919–1920</time><h3>Del laboratorio al termenvox</h3><p>Los experimentos de proximidad cristalizan en un instrumento controlado sin contacto. <a class="source-link" href="https://lemelson.mit.edu/resources/leon-theremin" target="_blank" rel="noopener noreferrer">MIT Lemelson</a></p></li>
+          <li data-era="origen"><time datetime="1922">1922</time><h3>Demostración ante Lenin</h3><p>Theremin presenta sus invenciones en el Kremlin. Que Lenin interpretara personalmente una melodía debe tratarse como anécdota posterior, no certeza.</p></li>
+          <li data-era="origen"><time datetime="1928-02-28">1924–1928</time><h3>Patente internacional</h3><p>Prioridad alemana en 1924, solicitud estadounidense en 1925 y concesión el 28 de febrero de 1928. <a class="source-link" href="https://patents.google.com/patent/US1661058A/en" target="_blank" rel="noopener noreferrer">Patente original</a></p></li>
+          <li data-era="concierto"><time datetime="1928-02-14">1928</time><h3>Music from the Ether</h3><p>Carnegie Hall acoge el 14 de febrero una demostración que fija la fascinación neoyorquina. <a class="source-link" href="https://data.carnegiehall.org/works/47274/about" target="_blank" rel="noopener noreferrer">Archivo Carnegie Hall</a></p></li>
+          <li data-era="origen"><time datetime="1929">1929</time><h3>RCA AR-1264</h3><p>RCA licencia y comercializa el theremin como instrumento doméstico. Su dificultad real contradice la promesa publicitaria de facilidad. <a class="source-link" href="https://americanhistory.si.edu/collections/object/nmah_606437" target="_blank" rel="noopener noreferrer">Smithsonian</a></p></li>
+          <li data-era="concierto"><time datetime="1929-11">1929</time><h3>First Airphonic Suite</h3><p>Joseph Schillinger integra el theremin como solista con la Cleveland Orchestra en noviembre. <a class="source-link" href="https://www.clevelandorchestra.com/posts/electric-political-and-galactic-commissions-and-premieres-with-the-cleveland-orchestra" target="_blank" rel="noopener noreferrer">Cleveland Orchestra</a></p></li>
+          <li data-era="concierto"><time datetime="1931">1931</time><h3>Rhythmicon</h3><p>Theremin y Henry Cowell construyen una máquina fotoeléctrica de polirritmos, antecedente de la caja de ritmos electrónica. <a class="source-link" href="https://americanhistory.si.edu/collections/object/nmah_606700" target="_blank" rel="noopener noreferrer">Smithsonian</a></p></li>
+          <li data-era="concierto"><time datetime="1932-04-01">1932</time><h3>Orquesta eléctrica</h3><p>Un concierto en Carnegie Hall reúne múltiples instrumentos de Theremin y demuestra que su visión excedía una sola caja solista. <a class="source-link" href="https://collections.carnegiehall.org/C.aspx?IID=2RRM1TMFZVAY&amp;PN=576&amp;VBID=2RRMLB8LUBI7W&amp;VF=SearchDetailPopupPage&amp;VP3=CMS3" target="_blank" rel="noopener noreferrer">Programa archivado</a></p></li>
+          <li data-era="concierto"><time datetime="1934-04-15">1934</time><h3>Ecuatorial de Varèse</h3><p>Edgard Varèse estrena la obra con dos theremins; después los sustituye por Ondes Martenot. <a class="source-link" href="https://ressources.ircam.fr/fr/work/ecuatorial" target="_blank" rel="noopener noreferrer">IRCAM</a></p></li>
+          <li data-era="concierto"><time datetime="1930">Década de 1930</time><h3>El método de Clara Rockmore</h3><p>Su digitación aérea, oído, disciplina violinística y exigencias técnicas convierten el instrumento en voz de concierto. <a class="source-link" href="https://nadiareisenberg-clararockmore.org/clara-rockmore-biography/" target="_blank" rel="noopener noreferrer">Fundación Rockmore</a></p></li>
+          <li data-era="origen"><time datetime="1938">1938–1939</time><h3>Regreso y represión soviética</h3><p>Theremin vuelve a la URSS en circunstancias discutidas, es detenido y acaba trabajando en una <em>sharashka</em>, un laboratorio penitenciario.</p></li>
+          <li data-era="pantalla"><time datetime="1945">1945</time><h3>Spellbound y The Lost Weekend</h3><p>Miklós Rózsa usa a Samuel Hoffman para convertir el theremin en psicología audible. La partitura de <em>Spellbound</em> obtiene el Óscar. <a class="source-link" href="https://www.oscars.org/oscars/ceremonies/1946/J" target="_blank" rel="noopener noreferrer">Academy Awards</a></p></li>
+          <li data-era="concierto"><time datetime="1945-11-03">1945</time><h3>Martinů y Fuleihan</h3><p>El repertorio de cámara y concierto crece alrededor de Lucie Bigelow Rosen y Clara Rockmore: prueba de una identidad musical más amplia que el efecto cinematográfico.</p></li>
+          <li data-era="pantalla"><time datetime="1951">1951</time><h3>The Day the Earth Stood Still</h3><p>Bernard Herrmann emplea dos theremins en una orquesta eléctrica inusual. El instrumento queda ligado popularmente a lo extraterrestre. <a class="source-link" href="https://catalog.afi.com/Film/50072-THE-DAY-THE-EARTH-STOOD-STILL" target="_blank" rel="noopener noreferrer">AFI Catalog</a></p></li>
+          <li data-era="moderno"><time datetime="1949">1949–1954</time><h3>El joven Bob Moog</h3><p>Moog construye un theremin adolescente, vende el Model 201 y publica diseños. El instrumento es la puerta de entrada a su futura ingeniería de sintetizadores. <a class="source-link" href="https://moogfoundation.org/bob-moog-timeline/" target="_blank" rel="noopener noreferrer">Bob Moog Foundation</a></p></li>
+          <li data-era="pantalla"><time datetime="1966">1966</time><h3>Good Vibrations, pero no un theremin</h3><p>El sonido de The Beach Boys procede del Electro‑Theremin de Paul Tanner y Bob Whitsell, controlado por deslizador. <a class="source-link" href="https://moogfoundation.org/bob-moogs-love-of-the-theremin/" target="_blank" rel="noopener noreferrer">Bob Moog Foundation</a></p></li>
+          <li data-era="moderno"><time datetime="1977">1977</time><h3>The Art of the Theremin</h3><p>El álbum de Clara Rockmore, producido por Bob y Shirleigh Moog, fija una referencia moderna de afinación, legato y timbre vocal.</p></li>
+          <li data-era="moderno"><time datetime="1991">1991–1998</time><h3>Reencuentro y Etherwave</h3><p>Theremin reaparece internacionalmente; el documental <em>Theremin: An Electronic Odyssey</em> y la línea Moog acercan el instrumento a una nueva generación.</p></li>
+          <li data-era="moderno"><time datetime="2006">2006</time><h3>Método de ocho posiciones</h3><p>Carolina Eyck publica <em>The Art of Playing the Theremin</em> y formaliza una pedagogía contemporánea. <a class="source-link" href="https://www.carolinaeyck.com/biography" target="_blank" rel="noopener noreferrer">Biografía oficial</a></p></li>
+          <li data-era="web"><time datetime="2014">2014</time><h3>Theremini</h3><p>Moog combina sensores de antena, motor digital, presets, delay y corrección de afinación regulable. <a class="source-link" href="https://www.moogmusic.com/synthesizers/theremini/" target="_blank" rel="noopener noreferrer">Moog Music</a></p></li>
+          <li data-era="web"><time datetime="2016">2016</time><h3>Clara Rockmore en el navegador</h3><p>Un Google Doodle lleva una interpretación simplificada con Web Audio a millones de usuarios. Es un precedente web, no un theremin de cámara completo. <a class="source-link" href="https://doodles.google/doodle/clara-rockmores-105th-birthday/" target="_blank" rel="noopener noreferrer">Google Doodle</a></p></li>
+          <li data-era="web"><time datetime="2019">2019–2020</time><h3>MediaPipe Hands</h3><p>El seguimiento en tiempo real de 21 landmarks por mano desde una cámara RGB hace viable una interfaz gestual sin sensores dedicados. <a class="source-link" href="https://arxiv.org/abs/2006.10214" target="_blank" rel="noopener noreferrer">Artículo técnico</a></p></li>
+          <li data-era="moderno"><time datetime="2020">2020</time><h3>Claravox Centennial</h3><p>Moog celebra el centenario con modos tradicional analógico y moderno híbrido, y homenajea a Rockmore en el nombre. <a class="source-link" href="https://api.moogmusic.com/sites/default/files/2021-06/Claravox_Centennial_Web_Manual.pdf" target="_blank" rel="noopener noreferrer">Manual oficial</a></p></li>
+          <li data-era="web"><time datetime="2021">2021</time><h3>Web Audio, estándar W3C</h3><p>La API alcanza Recomendación y consolida el navegador como plataforma de síntesis y procesamiento sonoro. <a class="source-link" href="https://www.w3.org/news/2021/web-audio-api-is-a-w3c-recommendation/" target="_blank" rel="noopener noreferrer">W3C</a></p></li>
+          <li data-era="web"><time datetime="2022">2022</time><h3>Theremins virtuales de cámara</h3><p>Investigaciones como <em>The Virtual Theremin</em> formalizan el principio de interacción —tono y volumen gestuales— separado del circuito original. <a class="source-link" href="https://www.degruyter.com/document/doi/10.1515/icom-2022-0007/html" target="_blank" rel="noopener noreferrer">Artículo académico</a></p></li>
+          <li data-era="web"><time datetime="2026">2026</time><h3>Theremin Web 3</h3><p>La tradición se traduce a cámara vertical, trayectoria tonal continua, síntesis AudioWorklet, perfiles históricos, cabinet, entrenamiento, grabación y experimentación en una app estática.</p></li>
+        </ol>
+      </section>
+
+      <section class="doc-section" id="rca-1929" data-search-item>
+        <h2>RCA 1929: del asombro al salón</h2>
+        <p>RCA obtuvo los derechos estadounidenses y lanzó el AR‑1264 en 1929. Su gabinete de madera compartía lenguaje visual con el radio-mueble: la empresa no vendía un artefacto de laboratorio, sino la promesa de un nuevo instrumento doméstico.</p>
+        <div class="card-grid">
+          <article class="info-card"><h3>Extensión documentada</h3><p>Las notas de servicio describen aproximadamente 3,5 octavas y un agudo próximo a 1400 ciclos por segundo. Con ese dato, Theremin Web ofrece el perfil histórico aproximado Si2–Fa6.</p></article>
+          <article class="info-card"><h3>Un sistema, no solo una caja</h3><p>El theremin necesitaba un altavoz externo. Ubicación, metales cercanos, ajuste de cero y postura afectaban radicalmente al campo de tono.</p></article>
+          <article class="info-card"><h3>Publicidad optimista</h3><p>La ausencia de teclas se presentó como facilidad. En realidad, eliminaba también todas las referencias táctiles: coste, dificultad y crisis económica limitaron su adopción.</p></article>
+          <article class="info-card"><h3>Una tirada escasa</h3><p>Los museos sitúan la producción en torno a quinientas unidades. Sobreviven suficientes para investigación y restauración, pero no fue el “piano de cada hogar”.</p></article>
+        </div>
+        <p>Las <a href="https://www.rcatheremin.com/servicenotes.php" target="_blank" rel="noopener noreferrer">RCA Theremin Service Notes de 1929</a> documentan circuito, calibración y fallos. Son una fuente decisiva porque permiten separar el comportamiento original de reconstrucciones posteriores.</p>
+        <h3>El timbre histórico</h3>
+        <p>Las mediciones de ejemplares RCA muestran una onda rica y asimétrica en graves que pierde armónicos al subir, hasta acercarse a una senoide. El altavoz y el gabinete añaden límites de banda, resonancia y compresión. No existe un único “sonido RCA” fuera de su ajuste, amplificador, altavoz, sala e intérprete.</p>
+        <p><a href="https://www.rcatheremin.com/tone.php" target="_blank" rel="noopener noreferrer">Escuchar y estudiar mediciones RCA</a> · <a href="https://www.metmuseum.org/art/collection/search/739621" target="_blank" rel="noopener noreferrer">Ejemplar del Metropolitan Museum</a></p>
+      </section>
+
+      <section class="doc-section" id="clara-rockmore" data-search-item>
+        <h2>Clara Rockmore: del invento al instrumento</h2>
+        <p class="lead">Clara Reisenberg Rockmore (1911–1998), niña prodigio del violín, no se limitó a dominar el theremin: definió cómo podía respirar, afinar y ocupar una sala de concierto.</p>
+        <div class="principle-bridge">
+          <div class="principle-bridge__side"><h3>Herencia violinística</h3><ul><li>Oído y memoria interválica</li><li>Fraseo continuo</li><li>Vibrato subordinado a la música</li><li>Disciplina de repertorio</li></ul></div>
+          <div class="principle-bridge__arrow" aria-hidden="true">→</div>
+          <div class="principle-bridge__side"><h3>Técnica aérea</h3><ul><li>Posiciones de dedos en el campo</li><li>Separación de tono y volumen</li><li>Anticipación silenciosa de saltos</li><li>Staccato rápido con la izquierda</li></ul></div>
+        </div>
+        <p>Trabajó con Theremin para mejorar sensibilidad, velocidad de volumen, visibilidad escénica y rango. La Fundación Rockmore resume el salto de unas tres a cinco octavas. Un examen técnico posterior del instrumento restaurado midió aproximadamente desde algo menos de Do1 hasta algo más de Do7, pero distingue extremos medibles de un registro estable y repetible.</p>
+        <div class="callout warning"><strong>Seis octavas no equivalen a seis octavas de repertorio cómodo</strong><p>Theremin Web llama “Concierto completo” a Do1–Do7 porque reproduce la extensión medida. Mantiene “Rockmore estable” Do2–Do7 como perfil de cinco octavas musicalmente más prudente.</p></div>
+        <p>Su método, grabaciones y filmaciones desmontan la caricatura del theremin como generador de lamentos. En Rockmore aparecen línea cantabile, ataques limpios, saltos afinados y una dinámica que depende tanto de la izquierda como del tono.</p>
+        <ul class="source-list">
+          <li><a href="https://nadiareisenberg-clararockmore.org/clara-rockmore-biography/" target="_blank" rel="noopener noreferrer">Fundación Nadia Reisenberg–Clara Rockmore</a> — biografía y legado familiar.</li>
+          <li><a href="https://www.electrotheremin.com/Method.pdf" target="_blank" rel="noopener noreferrer">Method for Theremin de Clara Rockmore</a> — documento pedagógico original.</li>
+          <li><a href="https://www.rcatheremin.com/documents/Clara_RCA_Report.pdf" target="_blank" rel="noopener noreferrer">Informe técnico del instrumento</a> — mediciones y restauración.</li>
+        </ul>
+      </section>
+
+      <section class="doc-section" id="repertorio-cine" data-search-item>
+        <h2>Dos identidades: concierto y pantalla</h2>
+        <p>El theremin entró muy pronto en música de concierto: Schillinger, Varèse, Fuleihan y Martinů escribieron para él o para intérpretes concretos. Paralelamente, Hollywood descubrió que una línea continua, sin ataque visible y cargada de vibrato podía representar sueño, trauma o alteridad.</p>
+        <div class="card-grid">
+          <article class="info-card"><h3>La sala</h3><p>Melodía, cámara, orquesta y recital. La afinación se juzga como en una voz o cuerda, pero sin contacto ni arco que estabilice la nota.</p></article>
+          <article class="info-card"><h3>La mente</h3><p><em>Spellbound</em> y <em>The Lost Weekend</em> (1945) utilizan el theremin de Samuel Hoffman en contextos psicológicos, antes de la ola extraterrestre.</p></article>
+          <article class="info-card"><h3>El cosmos</h3><p><em>The Day the Earth Stood Still</em> (1951) integra dos theremins en la paleta eléctrica de Bernard Herrmann y consolida el código de ciencia ficción.</p></article>
+          <article class="info-card"><h3>La confusión</h3><p>Muchos glissandi electrónicos se etiquetan “theremin”. Un ejemplo célebre: <em>Good Vibrations</em> usa Electro‑Theremin, no antenas.</p></article>
+        </div>
+        <p>El preset Ciencia ficción moderna de Theremin Web reconoce esa herencia con pulso brillante, vibrato automático retardado, hall y eco. Se separa deliberadamente del preset Rockmore: la historia produjo dos expectativas auditivas legítimas, pero distintas.</p>
+      </section>
+
+      <section class="doc-section" id="bob-moog" data-search-item>
+        <h2>Bob Moog y el renacimiento</h2>
+        <p>Para Robert Moog, el theremin fue primer amor, escuela de ingeniería y negocio inicial. Construyó uno de adolescente a partir de planos de revista; en los años cincuenta publicó diseños, vendió kits e instrumentos y conoció a una comunidad que exigía estabilidad y musicalidad.</p>
+        <div class="signal-chain" role="img" aria-label="Evolución del trabajo de Bob Moog desde el theremin al sintetizador y de vuelta">
+          <div class="signal-node"><strong>1949</strong><small>primer theremin</small></div>
+          <div class="signal-node"><strong>1953</strong><small>Model 201 comercial</small></div>
+          <div class="signal-node"><strong>1964</strong><small>módulos de sintetizador</small></div>
+          <div class="signal-node"><strong>1990s</strong><small>Etherwave</small></div>
+          <div class="signal-node"><strong>2000s</strong><small>últimos diseños</small></div>
+        </div>
+        <p>Los theremins le enseñaron osciladores, respuesta gestual, producción y escucha del intérprete. Años después, Moog colaboró en preservar el trabajo de Rockmore y devolvió al mercado instrumentos como Series 91, Etherwave y Ethervox MIDI. La genealogía no es “theremin reemplazado por sintetizador”, sino una conversación de ida y vuelta.</p>
+        <p>El <a href="https://www.moogmusic.com/synthesizers/etherwave-theremin/" target="_blank" rel="noopener noreferrer">Etherwave actual</a> conserva heterodinia analógica, cinco octavas y antenas, con calibración e interfaces modernas. El Claravox añade un modo tradicional analógico y otro híbrido programable.</p>
+      </section>
+
+      <section class="doc-section" id="era-digital" data-search-item>
+        <h2>Siglo XXI: sensores, corrección y código abierto</h2>
+        <p>La modernización no sigue una sola dirección. Algunos instrumentos perfeccionan el campo analógico; otros digitalizan la síntesis; otros conservan antenas pero generan sonido con microcontrolador; y otros trasladan por completo la interacción a cámara, radar, ultrasonidos o profundidad.</p>
+        <div class="table-wrap">
+          <table>
+            <caption>Familias contemporáneas relacionadas con el theremin</caption>
+            <thead><tr><th scope="col">Familia</th><th scope="col">Detecta</th><th scope="col">Genera</th><th scope="col">Ejemplo</th></tr></thead>
+            <tbody>
+              <tr><td>Clásico analógico</td><td>Capacitancia / antenas</td><td>Heterodinia analógica</td><td>Moog Etherwave</td></tr>
+              <tr><td>Híbrido</td><td>Antenas</td><td>Analógico + DSP</td><td>Claravox moderno</td></tr>
+              <tr><td>Digital asistido</td><td>Antenas</td><td>Motor digital + escala</td><td>Theremini</td></tr>
+              <tr><td>Abierto</td><td>Antenas / circuito documentado</td><td>Digital programable</td><td><a href="https://github.com/GaudiLabs/OpenThereminV4" target="_blank" rel="noopener noreferrer">OpenTheremin V4</a></td></tr>
+              <tr><td>Virtual de cámara</td><td>Imagen y pose</td><td>Audio digital</td><td>Prototipos académicos y Theremin Web</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>En interpretación, Lydia Kavina prolonga una línea pedagógica vinculada a Theremin; Carolina Eyck formaliza ocho posiciones y amplía repertorio contemporáneo; Dorit Chrysler, Pamelia Stickney, Rob Schwimmer y muchas otras voces llevan el instrumento a improvisación, electrónica y arte sonoro.</p>
+        <p>En tecnología, MediaPipe Hands hace posible estimar landmarks por mano en el propio dispositivo. Web Audio y AudioWorklet ofrecen un grafo de síntesis de baja latencia dentro del navegador. Ninguna de estas piezas “es” un theremin: juntas pueden preservar su principio de interacción.</p>
+      </section>
+
+      <section class="doc-section" id="theremin-web" data-search-item>
+        <h2>El salto presente: Theremin Web</h2>
+        <blockquote class="callout">
+          <strong>Definición honesta</strong>
+          <p>Theremin Web no reproduce el circuito eléctrico de un RCA de 1929. Es un instrumento musical digital controlado por cámara que conserva y amplía el principio interpretativo del theremin: tono y volumen continuos bajo movimientos independientes, sin tocar el instrumento.</p>
+        </blockquote>
+        <div class="principle-bridge">
+          <div class="principle-bridge__side"><h3>Theremin de antenas</h3><ul><li>Distancia a electrodo</li><li>Capacitancia corporal</li><li>Osciladores RF heterodinos</li><li>Amplificador, cabinet y sala físicos</li><li>Campo sensible al entorno</li></ul></div>
+          <div class="principle-bridge__arrow" aria-hidden="true">→</div>
+          <div class="principle-bridge__side"><h3>Theremin Web</h3><ul><li>Altura vertical de la palma</li><li>Landmarks desde cámara RGB</li><li>Síntesis Web Audio / Worklet</li><li>Cabinet y sala reproducibles</li><li>Campo calibrable y persistente</li></ul></div>
+        </div>
+        <h3>Qué conserva</h3>
+        <ul><li>Interpretación sin contacto.</li><li>Control independiente de tono y volumen.</li><li>Campo libre sin trastes, glissando y vibrato manual.</li><li>Dificultad expresiva: encontrar, sostener y articular desde el espacio.</li><li>Búsqueda tímbrica informada por RCA y Rockmore.</li></ul>
+        <h3>Qué transforma</h3>
+        <ul><li>La distancia a antena se convierte en altura dentro de la imagen; arriba es agudo.</li><li>El rango deja de depender de bobinas y puede elegirse entre perfiles históricos, cómodos o personalizados.</li><li>Escalas opcionales atraen al detenerse sin alterar el modo Libre.</li><li>Cabinet, sala, entrenamiento, grabación y gestos son módulos del instrumento.</li><li>Los fallbacks GPU/CPU y AudioWorklet/osciladores permiten funcionar en hardware web diverso.</li></ul>
+        <h3>La aportación defendible</h3>
+        <p>Theremin Web no reclama ser el primer theremin virtual, web o de cámara. Su aportación está en combinar seguimiento de ambas manos, roles estables, trayectoria tonal interpolada a velocidad de audio, perfiles históricos por registro, cabinet configurable, rango hasta Do1–Do7, herramientas pedagógicas y laboratorio creativo en una aplicación estática y local.</p>
+        <p>Consulta el detalle verificable en las <a href="especificaciones.html#arquitectura">especificaciones técnicas</a> y aprende a interpretarlo en el <a href="manual.html#lenguaje-gestual">manual gestual</a>.</p>
+      </section>
+
+      <section class="doc-section" id="mitos" data-search-item>
+        <h2>Mitos, atajos y precisiones necesarias</h2>
+        <details open><summary>“Fue el primer instrumento electrónico”</summary><p>Es una simplificación. Hubo antecedentes electromecánicos y electrónicos. Su singularidad histórica está en el control sin contacto, su fama internacional temprana y su comercialización.</p></details>
+        <details><summary>“Lenin aprendió a tocarlo”</summary><p>La demostración de 1922 está documentada; que Lenin interpretara una melodía aparece en relatos posteriores. Conviene decir “según la anécdota”.</p></details>
+        <details><summary>“RCA fracasó solo por el crac de 1929”</summary><p>La depresión influyó, pero también el precio, la instalación delicada y una dificultad muy superior a la publicidad.</p></details>
+        <details><summary>“Theremin fue secuestrado en Nueva York”</summary><p>Su regreso de 1938 sigue discutido. Algunas memorias hablan de secuestro; investigaciones posteriores contemplan regreso voluntario asistido. Después sí sufrió detención y trabajo forzado soviético.</p></details>
+        <details><summary>“Clara Rockmore tocaba seis octavas de forma estable”</summary><p>Su instrumento restaurado pudo medir cerca de seis octavas en extremos. La extensión estable atribuida a su instrumento de concierto es cinco; las cifras describen criterios diferentes.</p></details>
+        <details><summary>“Good Vibrations es el theremin más famoso”</summary><p>Es probablemente el sonido confundido con theremin más famoso. Se grabó con Electro‑Theremin de deslizador.</p></details>
+        <details><summary>“Todo sonido agudo de ciencia ficción es un theremin”</summary><p>No. Senoides, Ondes Martenot, sierras filtradas, voces y efectos de estudio pueden producir glissandi similares.</p></details>
+        <details><summary>“La reverb forma parte del theremin clásico”</summary><p>El circuito genera una señal; la reverberación pertenece a sala, altavoz o producción. Por eso Theremin Web la modela como etapa separada.</p></details>
+        <details><summary>“Una cámara lo convierte en un theremin físico”</summary><p>Organológicamente es un instrumento digital gestual inspirado en el theremin. No mide capacitancia ni heterodinia real; preserva el principio musical.</p></details>
+      </section>
+
+      <section class="doc-section" id="fuentes" data-search-item>
+        <h2>Fuentes comentadas y lectura adicional</h2>
+        <p>Selección priorizada de patentes, archivos, museos, fabricantes, intérpretes e investigación. Los enlaces externos se abren en otra pestaña.</p>
+        <h3>Documentos primarios y archivos</h3>
+        <ul class="source-list">
+          <li><a href="https://patents.google.com/patent/US1661058A/en" target="_blank" rel="noopener noreferrer">Patente US1661058A</a> — principio técnico, solicitud y dibujos.</li>
+          <li><a href="https://www.rcatheremin.com/servicenotes.php" target="_blank" rel="noopener noreferrer">RCA Theremin Service Notes (1929)</a> — especificaciones y servicio.</li>
+          <li><a href="https://data.carnegiehall.org/works/47274/about" target="_blank" rel="noopener noreferrer">Carnegie Hall Data Lab</a> — programas y actuaciones.</li>
+          <li><a href="https://www.electrotheremin.com/Method.pdf" target="_blank" rel="noopener noreferrer">Método de Clara Rockmore</a> — técnica en primera fuente.</li>
+          <li><a href="https://www.rcatheremin.com/documents/Clara_RCA_Report.pdf" target="_blank" rel="noopener noreferrer">Informe del theremin de Rockmore</a> — examen y restauración.</li>
+        </ul>
+        <h3>Museos e instituciones</h3>
+        <ul class="source-list">
+          <li><a href="https://americanhistory.si.edu/collections/object/nmah_606437" target="_blank" rel="noopener noreferrer">Smithsonian · RCA Theremin</a> — objeto y procedencia.</li>
+          <li><a href="https://www.metmuseum.org/art/collection/search/739621" target="_blank" rel="noopener noreferrer">Metropolitan Museum of Art</a> — ejemplar RCA AR‑1264.</li>
+          <li><a href="https://lemelson.mit.edu/resources/leon-theremin" target="_blank" rel="noopener noreferrer">MIT Lemelson · Leon Theremin</a> — síntesis biográfica.</li>
+          <li><a href="https://catalog.afi.com/Film/50072-THE-DAY-THE-EARTH-STOOD-STILL" target="_blank" rel="noopener noreferrer">American Film Institute</a> — contexto cinematográfico.</li>
+        </ul>
+        <h3>Legado y presente</h3>
+        <ul class="source-list">
+          <li><a href="https://nadiareisenberg-clararockmore.org/clara-rockmore-biography/" target="_blank" rel="noopener noreferrer">Fundación Clara Rockmore</a> — biografía autorizada.</li>
+          <li><a href="https://moogfoundation.org/bob-moog-timeline/" target="_blank" rel="noopener noreferrer">Bob Moog Foundation</a> — cronología de Moog.</li>
+          <li><a href="https://www.carolinaeyck.com/biography" target="_blank" rel="noopener noreferrer">Carolina Eyck</a> — método y repertorio contemporáneo.</li>
+          <li><a href="https://arxiv.org/abs/2006.10214" target="_blank" rel="noopener noreferrer">MediaPipe Hands</a> — base técnica del seguimiento moderno.</li>
+          <li><a href="https://www.w3.org/news/2021/web-audio-api-is-a-w3c-recommendation/" target="_blank" rel="noopener noreferrer">W3C · Web Audio</a> — estandarización de la plataforma sonora web.</li>
+        </ul>
+        <p class="fine-print">Consulta realizada en julio de 2026. Una fuente enlazada puede actualizar su URL o metadatos; las afirmaciones centrales se han contrastado entre varias familias documentales.</p>
+      </section>
+
+      <footer class="docs-footer">
+        <p>Historia del theremin · Theremin Web 3 · edición julio de 2026.</p>
+        <nav aria-label="Navegación final"><a href="../index.html">Volver al instrumento</a><a href="manual.html">Manual</a><a href="especificaciones.html">Especificaciones</a></nav>
+      </footer>
+    </main>
+  </div>
+
+  <button class="back-top" type="button" data-back-top aria-label="Volver arriba">↑</button>
+</body>
+</html>

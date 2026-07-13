@@ -161,8 +161,8 @@ export class HandTracking {
     this._lastFrameClock = frameClock;
 
     let result;
+    let timestamp = frameClock;
     try {
-      let timestamp = frameClock;
       if (timestamp <= this._lastTimestamp) timestamp = this._lastTimestamp + 1;
       this._lastTimestamp = timestamp;
       result = this.landmarker.detectForVideo(this.video, timestamp);

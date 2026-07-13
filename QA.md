@@ -34,6 +34,15 @@
 12. Cambiar de cámara; detener y reiniciar tres veces.
 13. Grabar 30 s, reproducir WebM, generar WAV y compartir en móvil.
 14. Mantener una sesión de 10 min observando temperatura, CPU y deriva.
+15. Abrir desde Configuración los tres documentos; deben aparecer en pestañas
+    nuevas sin detener la cámara ni el audio de la app.
+16. En cada documento probar buscador (también sin tildes), índice, atrás/adelante,
+    enlaces entre documentos, copia de ancla, imprimir/PDF y volver a la app.
+17. En Historia filtrar las cinco épocas; en Especificaciones mover los
+    laboratorios de rango/latencia; en Manual cambiar las tres rutas de práctica.
+18. Repetir la biblioteca a 320, 375, 768, 1024 y 1440 px, zoom 200 %, teclado,
+    reducción de movimiento y JavaScript desactivado. Solo las tablas pueden
+    tener scroll horizontal contenido.
 
 ## Métricas objetivo
 
@@ -43,3 +52,5 @@
 - Tracking estable ≥ 24 FPS en móvil medio y ≥ 30 FPS en escritorio.
 - Latencia `baseLatency + outputLatency` registrada; objetivo cableado < 50 ms.
 - Sin streams de cámara activos después de Detener.
+- Sin 404 en `docs/*.html`, `docs.css` o `docs.js`; todos los fragmentos internos
+  deben resolver y el contenido esencial debe seguir legible sin JavaScript.

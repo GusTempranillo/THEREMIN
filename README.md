@@ -20,6 +20,9 @@ buscando un timbre cálido y expresivo cercano a un theremin analógico.
   persistentes exclusivamente en `localStorage`.
 - 🧪 **Entrenamiento y laboratorio creativo:** cents, estabilidad, vibrato,
   morph XY, drone y grabación/reproducción de gestos.
+- 📚 **Biblioteca interactiva integrada:** manual de usuario, historia documentada
+  y especificación técnica con buscador, índices internos, cronología, laboratorios
+  y enlaces a fuentes.
 
 ## Cómo funciona (controles)
 
@@ -100,6 +103,23 @@ cámara. Verás el vídeo espejado con el overlay de landmarks y oirás las voce
 > ⚠️ Abrir el `index.html` con doble clic (`file://`) **no** funciona: los módulos
 > ES y `getUserMedia` necesitan servirse por `http://localhost` o `https://`.
 
+## Documentación interactiva
+
+Dentro de **Configuración interpretativa** hay tres accesos que se abren en una
+pestaña nueva para no interrumpir la sesión de cámara/audio:
+
+- [`docs/manual.html`](docs/manual.html): preparación, controles, calibración,
+  técnica, práctica, experimentación, grabación y diagnóstico.
+- [`docs/historia.html`](docs/historia.html): cronología filtrable desde Termen y
+  RCA hasta la era digital y el salto conceptual a Theremin Web, con fuentes.
+- [`docs/especificaciones.html`](docs/especificaciones.html): arquitectura,
+  tracking, ecuaciones, DSP, registros, equivalencias, efectos, privacidad,
+  fallbacks y límites conocidos.
+
+Las tres páginas funcionan sin JavaScript para lectura y enlaces. `docs.js`
+añade búsqueda local, progreso, navegación activa, filtros, pestañas y pequeños
+laboratorios. No cargan fuentes, imágenes ni scripts de terceros.
+
 ## Stack
 
 - **HTML5 + CSS3 + JavaScript Vanilla** con módulos ES. Sin frameworks, sin
@@ -118,6 +138,12 @@ cámara. Verás el vídeo espejado con el overlay de landmarks y oirás las voce
 ├── index.html
 ├── styles.css
 ├── README.md
+├── docs/
+│   ├── manual.html
+│   ├── historia.html
+│   ├── especificaciones.html
+│   ├── docs.css
+│   └── docs.js
 └── src/
     ├── config.js        # constantes ajustables (el "tacto" del instrumento)
     ├── main.js          # orquesta todo

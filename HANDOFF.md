@@ -62,9 +62,16 @@ El siguiente modelo debe revisar primero el código real de `src/` y conservar l
   detener/reiniciar con liberación de recursos y asociación temporal de manos.
 - Entrenamiento de cents/estabilidad/vibrato, laboratorio XY, drone y captura
   de gestos exportable a JSON.
+- Configuración incorpora tres enlaces-tarjeta a documentación estática e
+  interactiva: `docs/manual.html`, `docs/historia.html` y
+  `docs/especificaciones.html`. Comparten búsqueda, índice, progreso, impresión,
+  navegación accesible y componentes propios; se abren en otra pestaña.
+- Se corrigió el alcance del timestamp de inferencia para que los callbacks de
+  tracking y su ruta de error siempre reciban una marca válida. Drone captura la
+  última frecuencia aunque Entrenamiento esté desactivado.
 - `npm test` cubre rangos, defaults, Libre, verticalidad, migración,
-  automatización continua, calibración y cruce; `npm run check` valida
-  la sintaxis de todos los módulos.
+  automatización continua, calibración, cruce y enlaces internos de la biblioteca;
+  `npm run check` valida `src/` y `docs/docs.js`.
 
 ## Estructura
 
@@ -75,6 +82,12 @@ THEREMIN3/
 ├── README.md
 ├── HANDOFF.md
 ├── .gitignore
+├── docs/
+│   ├── manual.html
+│   ├── historia.html
+│   ├── especificaciones.html
+│   ├── docs.css
+│   └── docs.js
 └── src/
     ├── main.js
     ├── handTracking.js
@@ -132,7 +145,7 @@ escala de la mano.
 Grafo de cada voz RCA:
 
 ```text
-6 × PeriodicWave por registro + crossfade equal-power
+7 × PeriodicWave por registro + crossfade equal-power
 → mezcla → WaveShaper asimétrico 4x → DC blocker
 → formantes → paso bajo dependiente del registro → VCA → bus
 ```

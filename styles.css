@@ -221,6 +221,80 @@ select {
 .config-actions { margin-top: 12px; }
 .ir-upload { color: var(--muted); font-size: 0.78rem; cursor: pointer; }
 .ir-upload input { display: block; max-width: 190px; margin-top: 4px; }
+.documentation-launcher {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.documentation-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.documentation-heading h3 { margin: 1px 0 0; font-size: 1rem; }
+.documentation-heading > p {
+  max-width: 380px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  text-align: right;
+}
+.documentation-kicker {
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.documentation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.documentation-card {
+  position: relative;
+  display: flex;
+  min-height: 152px;
+  padding: 15px;
+  flex-direction: column;
+  color: var(--text);
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(34, 40, 56, 0.94), rgba(22, 28, 40, 0.94));
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  text-decoration: none;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.documentation-card::after {
+  content: "";
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  right: -55px;
+  top: -60px;
+  background: radial-gradient(circle, rgba(94, 230, 197, 0.18), transparent 70%);
+  pointer-events: none;
+}
+.documentation-card:hover {
+  color: var(--text);
+  border-color: var(--accent);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+  transform: translateY(-2px);
+}
+.documentation-card:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.documentation-card__index {
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.documentation-card__title { margin-top: 9px; font-size: 0.92rem; font-weight: 750; }
+.documentation-card__description { margin-top: 5px; color: var(--muted); font-size: 0.72rem; line-height: 1.42; }
+.documentation-card__cta { margin-top: auto; padding-top: 12px; color: var(--accent); font-size: 0.72rem; font-weight: 750; }
 .config-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(170px, 1fr));
@@ -295,6 +369,10 @@ select {
 @media (max-width: 760px) {
   .config-grid { grid-template-columns: 1fr; }
   .config-wide { grid-column: auto; }
+  .documentation-heading { align-items: start; flex-direction: column; }
+  .documentation-heading > p { max-width: none; text-align: left; }
+  .documentation-grid { grid-template-columns: 1fr; }
+  .documentation-card { min-height: 132px; }
 }
 
 .rec { margin-left: auto; }
@@ -326,3 +404,23 @@ select {
   cursor: pointer; transition: all 0.15s ease;
 }
 .dl-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
