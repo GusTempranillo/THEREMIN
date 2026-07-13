@@ -1,4 +1,6 @@
 // AudioWorklet: fuente aditiva monofónica, band-limited y determinista.
+const SILENT_TIMBRE_AMPLITUDE = 0.003;
+
 class ThereminSourceProcessor extends AudioWorkletProcessor {
   static get parameterDescriptors() {
     return [
@@ -28,7 +30,7 @@ class ThereminSourceProcessor extends AudioWorkletProcessor {
     };
   }
 
-  _pulse(phase, frequency, duty, richness, maxHarmonics = 24) {
+  _pulse(phase, frequency, duty, richness, maxHarmonics = 16) {
     let value = Math.sin(phase);
     const safeNyquist = sampleRate * 0.46;
     for (let n = 2; n <= maxHarmonics; n++) {
@@ -51,9 +53,13 @@ class ThereminSourceProcessor extends AudioWorkletProcessor {
       const base = profile === "rockmore" ? 0.82 : 1;
       const richness = Math.max(0.04, base * (1 - octave / 5.4)) * (0.72 + amplitude * 0.28);
       const duty = profile === "rockmore" ? 0.36 : 0.29 + Math.min(0.18, octave * 0.035);
-      return this._pulse(phase, frequency, duty, richness);
+      // En tiempo real, 14–16 parciales conservan el color vocal útil de la
+      // voz histórica. Más parciales apenas se oyen tras el filtro de salida,
+      // pero sí pueden agotar el presupuesto del hilo de audio en equipos
+      // modestos y producir una pulsación grave por underrun.
+      return this._pulse(phase, frequency, duty, richness, profile === "rockmore" ? 14 : 16);
     }
-    if (profile === "scifi") return this._pulse(phase, frequency, 0.31, 0.92, 32);
+    if (profile === "scifi") return this._pulse(phase, frequency, 0.31, 0.92, 20);
     if (profile === "experimental") {
       let value = Math.sin(phase)
         + 0.10 * Math.sin(2 * phase)
@@ -72,6 +78,12 @@ class ThereminSourceProcessor extends AudioWorkletProcessor {
     const frequencyValues = parameters.frequency;
     const detuneValues = parameters.detune;
     const amplitude = parameters.timbreAmplitude[0];
+    // En Clásico la voz izquierda permanece creada pero silenciada. No debe
+    // seguir calculando cientos de miles de senos por segundo sin aportar señal.
+    if (!Number.isFinite(amplitude) || amplitude <= SILENT_TIMBRE_AMPLITUDE) {
+      output.fill(0);
+      return true;
+    }
     for (let i = 0; i < output.length; i++) {
       const baseFrequency = frequencyValues.length > 1 ? frequencyValues[i] : frequencyValues[0];
       const detune = detuneValues.length > 1 ? detuneValues[i] : detuneValues[0];

@@ -107,7 +107,9 @@ export class ThereminVoice {
     this.mixGain.gain.value = 0.58;
 
     this.shaper = audioCtx.createWaveShaper();
-    this.shaper.oversample = "4x";
+    // 2× elimina la mayor parte de la aspereza de la saturación sin duplicar
+    // innecesariamente la carga que ya asume el AudioWorklet en tiempo real.
+    this.shaper.oversample = "2x";
     this.shaper.curve = this._asymmetricCurve(1.55, 1.22, 0.91);
 
     this.dcBlock = audioCtx.createBiquadFilter();

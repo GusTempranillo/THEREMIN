@@ -50,7 +50,8 @@ export class AudioEngine {
 
     this.cabinetDrive = this.ctx.createWaveShaper();
     this.cabinetDrive.curve = this._cabinetCurve();
-    this.cabinetDrive.oversample = "4x";
+    // Evita que el cabinet añada otra etapa 4× al presupuesto de audio.
+    this.cabinetDrive.oversample = "2x";
 
     this.cabinetCompression = this.ctx.createDynamicsCompressor();
     this.cabinetCompression.threshold.value = -15;
