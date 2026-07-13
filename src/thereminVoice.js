@@ -340,9 +340,17 @@ export class ThereminVoice {
     );
     const transition = continuousPitchTransition(glide, this.controlIntervalEstimate);
     if (this.workletNode) {
-      scheduleContinuousFrequency(
-        this.workletNode.parameters.get("frequency"), hz, now, transition, immediate
-      );
+      const frequencyParam = this.workletNode.parameters.get("frequency");
+      if (immediate) {
+        frequencyParam.cancelScheduledValues(now);
+        frequencyParam.setValueAtTime(hz, now);
+      } else {
+        // Algunos navegadores no conservan de forma fiable una secuencia de
+        // cancelAndHold + ramp sobre AudioParam de Worklet a cada frame de
+        // cámara. setTarget mantiene la trayectoria desde el valor efectivo
+        // actual y evita que la fuente quede retenida en una frecuencia vieja.
+        frequencyParam.setTargetAtTime(hz, now, Math.max(0.003, transition / 3));
+      }
       this._updateFilter(hz, immediate);
       return;
     }
