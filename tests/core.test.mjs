@@ -155,16 +155,70 @@ test("temporal hand association survives a crossing", () => {
   const tracking = new HandTracking(null);
   const out1 = { left: null, right: null };
   tracking._assignTrackedHands([
-    { palm: { x: 0.2, y: 0.5 } },
-    { palm: { x: 0.8, y: 0.5 } },
+    { id: "right", palm: { x: 0.2, y: 0.5 } },
+    { id: "left", palm: { x: 0.8, y: 0.5 } },
   ], out1);
-  assert.equal(out1.right.palm.x, 0.2);
+  assert.equal(out1.right.id, "right");
+
   const out2 = { left: null, right: null };
   tracking._assignTrackedHands([
-    { palm: { x: 0.55, y: 0.5 } },
-    { palm: { x: 0.45, y: 0.5 } },
+    { id: "right", palm: { x: 0.4, y: 0.5 } },
+    { id: "left", palm: { x: 0.6, y: 0.5 } },
   ], out2);
-  assert.ok(out2.left && out2.right);
+  assert.equal(out2.right.id, "right");
+
+  const out3 = { left: null, right: null };
+  tracking._assignTrackedHands([
+    { id: "right", palm: { x: 0.55, y: 0.5 } },
+    { id: "left", palm: { x: 0.45, y: 0.5 } },
+  ], out3);
+  assert.equal(out3.right.id, "right");
+  assert.equal(out3.left.id, "left");
+});
+
+test("an absent hand track expires while the other hand remains visible", () => {
+  const tracking = new HandTracking(null);
+  const initial = { left: null, right: null };
+  tracking._assignTrackedHands([
+    { id: "right", palm: { x: 0.2, y: 0.3 } },
+    { id: "left", palm: { x: 0.8, y: 0.7 } },
+  ], initial);
+
+  for (let frame = 0; frame < 13; frame++) {
+    const out = { left: null, right: null };
+    tracking._assignTrackedHands([
+      { id: "left", palm: { x: 0.8, y: 0.7 } },
+    ], out);
+    assert.equal(out.left.id, "left");
+  }
+
+  assert.equal(tracking._tracks.right, null);
+  assert.ok(tracking._tracks.left);
+});
+
+test("hands reacquire their screen roles after an expired track", () => {
+  const tracking = new HandTracking(null);
+  const initial = { left: null, right: null };
+  tracking._assignTrackedHands([
+    { id: "right-old", palm: { x: 0.2, y: 0.3 } },
+    { id: "left", palm: { x: 0.8, y: 0.7 } },
+  ], initial);
+
+  for (let frame = 0; frame < 13; frame++) {
+    tracking._assignTrackedHands(
+      [{ id: "left", palm: { x: 0.8, y: 0.7 } }],
+      { left: null, right: null }
+    );
+  }
+
+  const reacquired = { left: null, right: null };
+  tracking._assignTrackedHands([
+    { id: "left", palm: { x: 0.76, y: 0.7 } },
+    { id: "right-new", palm: { x: 0.24, y: 0.3 } },
+  ], reacquired);
+  assert.equal(reacquired.right.id, "right-new");
+  assert.equal(reacquired.left.id, "left");
+  assert.equal(tracking._tracks.right.vx, 0);
 });
 
 test("frame timestamps remain valid when MediaPipe rejects a frame", () => {

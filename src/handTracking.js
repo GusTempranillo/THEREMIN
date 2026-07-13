@@ -16,6 +16,8 @@ import { WASM_BASE_URL, HAND_MODEL_URL } from "./config.js";
 
 // Índices de landmarks que forman la palma (para el centroide estable del tono).
 const PALM_LANDMARKS = [0, 5, 9, 13, 17];
+const MAX_TRACK_MISSING_FRAMES = 12;
+const MISSING_VELOCITY_DECAY = 0.55;
 
 export class HandTracking {
   constructor(videoEl) {
@@ -213,8 +215,7 @@ export class HandTracking {
   _assignTrackedHands(detected, out) {
     if (!detected.length) {
       for (const side of ["left", "right"]) {
-        if (this._tracks[side]) this._tracks[side].missing++;
-        if (this._tracks[side]?.missing > 12) this._tracks[side] = null;
+        this._ageMissingTrack(side);
       }
       return;
     }
@@ -249,18 +250,35 @@ export class HandTracking {
     for (const side of ["left", "right"]) {
       const hand = out[side];
       if (!hand) {
-        if (this._tracks[side]) this._tracks[side].missing++;
+        // Una pista ausente también debe caducar cuando la otra mano continúa
+        // visible. Si no, su posición/velocidad queda congelada indefinidamente
+        // y puede intercambiar los papeles al reaparecer la segunda mano.
+        this._ageMissingTrack(side);
         continue;
       }
       const previous = this._tracks[side];
+      const framesElapsed = previous ? previous.missing + 1 : 1;
+      const dx = previous ? (hand.palm.x - previous.x) / framesElapsed : 0;
+      const dy = previous ? (hand.palm.y - previous.y) / framesElapsed : 0;
       this._tracks[side] = {
         x: hand.palm.x,
         y: hand.palm.y,
-        vx: previous ? (hand.palm.x - previous.x) * 0.65 + previous.vx * 0.35 : 0,
-        vy: previous ? (hand.palm.y - previous.y) * 0.65 + previous.vy * 0.35 : 0,
+        // Tras una ocultación, repartir el desplazamiento entre los fotogramas
+        // transcurridos evita convertir la reaparición en un pico de velocidad.
+        vx: previous ? dx * 0.65 + previous.vx * 0.35 : 0,
+        vy: previous ? dy * 0.65 + previous.vy * 0.35 : 0,
         missing: 0,
       };
     }
+  }
+
+  _ageMissingTrack(side) {
+    const track = this._tracks[side];
+    if (!track) return;
+    track.missing++;
+    track.vx *= MISSING_VELOCITY_DECAY;
+    track.vy *= MISSING_VELOCITY_DECAY;
+    if (track.missing > MAX_TRACK_MISSING_FRAMES) this._tracks[side] = null;
   }
 
   _palmCentroid(landmarks) {
