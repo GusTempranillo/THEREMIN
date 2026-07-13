@@ -405,6 +405,17 @@ select {
 }
 .dl-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+.app-footer {
+  margin-top: 34px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  text-align: center;
+}
+.app-footer p { margin: 0; }
+
 .sr-only {
   position: absolute !important;
   width: 1px !important;
