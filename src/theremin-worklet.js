@@ -29,11 +29,18 @@ class ThereminSourceProcessor extends AudioWorkletProcessor {
   }
 
   _pulse(phase, frequency, duty, richness, maxHarmonics = 24) {
-    const limit = Math.min(maxHarmonics, Math.floor(sampleRate * 0.46 / frequency));
     let value = Math.sin(phase);
-    for (let n = 2; n <= limit; n++) {
+    const safeNyquist = sampleRate * 0.46;
+    for (let n = 2; n <= maxHarmonics; n++) {
+      // Un armónico no aparece/desaparece de golpe al cruzar Nyquist: se
+      // desvanece en una banda del 18 %, evitando pequeños clics tímbricos.
+      const margin = safeNyquist / (frequency * n);
+      if (margin <= 1) break;
+      const x = Math.min(1, Math.max(0, (margin - 1) / 0.18));
+      const antiAlias = x * x * (3 - 2 * x);
       const coefficient = Math.sin(Math.PI * n * duty) / (n * Math.sin(Math.PI * duty));
-      value += Math.sin(n * phase) * coefficient * richness * Math.exp(-Math.pow(n / 18, 1.4));
+      value += Math.sin(n * phase) * coefficient * richness
+        * Math.exp(-Math.pow(n / 18, 1.4)) * antiAlias;
     }
     return value * 0.58;
   }

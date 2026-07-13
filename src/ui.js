@@ -48,7 +48,6 @@ export class UI {
       octaveSpanValue: document.getElementById("octaveSpanValue"),
       octaveDownBtn: document.getElementById("octaveDownBtn"),
       octaveUpBtn: document.getElementById("octaveUpBtn"),
-      pitchAxisSelect: document.getElementById("pitchAxisSelect"),
       pitchGlideRange: document.getElementById("pitchGlideRange"),
       pitchGlideValue: document.getElementById("pitchGlideValue"),
       volumeResponseRange: document.getElementById("volumeResponseRange"),
@@ -118,8 +117,10 @@ export class UI {
   resizeCanvas() {
     const rect = this.video.getBoundingClientRect();
     if (rect.width && rect.height) {
-      this.canvas.width = rect.width;
-      this.canvas.height = rect.height;
+      const width = Math.round(rect.width);
+      const height = Math.round(rect.height);
+      if (this.canvas.width !== width) this.canvas.width = width;
+      if (this.canvas.height !== height) this.canvas.height = height;
     }
   }
 
@@ -145,7 +146,6 @@ export class UI {
     const octaves = Math.log2(preset.maxHz / preset.minHz);
     this.el.octaveSpanRange.value = String(Math.round(octaves * 2) / 2);
     this.el.octaveSpanValue.textContent = `${octaves.toFixed(1).replace(".", ",")} oct`;
-    this.el.pitchAxisSelect.value = preset.axis;
     this.el.pitchGlideRange.value = String(preset.pitchGlideMs);
     this.el.volumeResponseRange.value = String(preset.volumeResponseMs);
     this.el.pitchGlideValue.textContent = `${preset.pitchGlideMs} ms`;
@@ -197,20 +197,13 @@ export class UI {
   drawGuides(mode) {
     if (mode !== "classic" || !this.guideConfig) return;
     const ctx = this.cctx, W = this.canvas.width, H = this.canvas.height;
-    const { axis, pitchLow, pitchHigh, volumeSilent, volumeLoud } = this.guideConfig;
+    const { pitchLow, pitchHigh, volumeSilent, volumeLoud } = this.guideConfig;
     ctx.save();
     ctx.setLineDash([8, 7]);
     ctx.lineWidth = 2;
-    if (axis === "x") {
-      for (const [value, color] of [[pitchLow, "#7aa2ff"], [pitchHigh, "#ff8db4"]]) {
-        const x = (1 - value) * W;
-        ctx.strokeStyle = color; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-      }
-    } else {
-      for (const [value, color] of [[pitchLow, "#7aa2ff"], [pitchHigh, "#ff8db4"]]) {
-        const y = (1 - value) * H;
-        ctx.strokeStyle = color; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-      }
+    for (const [value, color] of [[pitchLow, "#7aa2ff"], [pitchHigh, "#ff8db4"]]) {
+      const y = (1 - value) * H;
+      ctx.strokeStyle = color; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
     }
     for (const [value, color] of [[volumeSilent, "#ff5a6a"], [volumeLoud, "#5ee6c5"]]) {
       const y = (1 - value) * H;

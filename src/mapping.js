@@ -24,7 +24,6 @@ export class HandMapper {
     this.range = PITCH_RANGE[rangeKey];
     this.minFrequency = this.range.fBase;
     this.maxFrequency = this.range.fBase * Math.pow(2, this.range.octaves);
-    this.pitchAxis = "y";
     this.inputLow = 0;
     this.inputHigh = 1;
     this.yFilter = new OneEuroFilter(ONE_EURO.position);
@@ -42,13 +41,11 @@ export class HandMapper {
     this._prevT = null;
   }
 
-  // Configura en caliente la extensión y el eje usados por el tono. En vídeo
-  // espejado, x cruda pequeña aparece junto a la antena derecha; 1-x conserva
-  // la convención histórica "más cerca = más agudo".
+  // Configura en caliente la extensión vertical usada por el tono. En cámara,
+  // arriba (Y pequeña) es agudo y abajo (Y grande) es grave.
   setPitchConfig({
     minHz,
     maxHz,
-    axis = this.pitchAxis,
     inputLow = this.inputLow,
     inputHigh = this.inputHigh,
   }) {
@@ -57,7 +54,6 @@ export class HandMapper {
     }
     this.minFrequency = minHz;
     this.maxFrequency = maxHz;
-    this.pitchAxis = axis === "x" ? "x" : "y";
     this.inputLow = Number.isFinite(inputLow) ? inputLow : 0;
     this.inputHigh = Number.isFinite(inputHigh) && Math.abs(inputHigh - this.inputLow) > 1e-4
       ? inputHigh
@@ -68,8 +64,8 @@ export class HandMapper {
   // hand: { landmarks, palm }. tSeconds: marca de tiempo en segundos.
   // Devuelve { frequency, volume, yNorm, velocity }.
   process(hand, tSeconds) {
-    // --- Tono: posición de la palma en el eje seleccionado ------------------
-    const positionRaw = this.pitchAxis === "x" ? hand.palm.x : hand.palm.y;
+    // --- Tono: altura de la palma; nunca se cuantiza en modo Libre -----------
+    const positionRaw = hand.palm.y;
     const positionFiltered = this.yFilter.filter(positionRaw, tSeconds);
     const pitchCoordinate = 1 - positionFiltered;
     const pitchNorm = clamp01(
@@ -100,6 +96,12 @@ export class HandMapper {
     this._prevYNorm = pitchNorm;
     this._prevT = tSeconds;
 
-    return { frequency, volume, yNorm: pitchNorm, pitchNorm, velocity };
+    return {
+      frequency,
+      volume,
+      yNorm: pitchNorm,
+      pitchNorm,
+      velocity,
+    };
   }
 }

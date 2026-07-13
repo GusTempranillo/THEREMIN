@@ -48,6 +48,13 @@ let latestHands = { left: null, right: null };
 let controlsWired = false;
 let calibrationStep = -1;
 let pitchHistory = [];
+const HAND_DROPOUT_GRACE_SECONDS = 0.11;
+const TRACKING_WATCHDOG_TIMEOUT_MS = 260;
+const missingSince = { left: null, right: null };
+let lastClassicVolume = 0;
+let trackingWatchdogId = null;
+let lastTrackingCallbackWallTime = 0;
+let trackingTimedOut = false;
 
 // Mapeadores: en Dúo, una por mano; en Clásico, una de tono + control de vol.
 const mappers = {
@@ -78,13 +85,12 @@ ui.setTraining({ enabled: Boolean(persistedSettings.trainingEnabled) });
 for (const [id, value] of [
   ["pitchMinHz", persistedSettings.pitch.minHz],
   ["pitchMaxHz", persistedSettings.pitch.maxHz],
-  ["pitchAxisSelect", persistedSettings.pitch.axis],
   ["pitchGlideRange", persistedSettings.pitch.glideMs],
   ["volumeResponseRange", persistedSettings.pitch.volumeResponseMs],
 ]) ui.el[id].value = String(value);
 applyPerformanceConfig(false);
 
-let lastFrameT = performance.now() / 1000;
+let lastFrameT = null;
 let recTimerId = null;
 
 // --- Arranque ----------------------------------------------------------------
@@ -125,9 +131,11 @@ async function onStart() {
     }
 
     tracking.onResults = onHands;
+    resetHandContinuity();
     tracking.start();
 
     state.started = true;
+    startTrackingWatchdog();
     ui.showApp();
     if (!controlsWired) { wireControls(); controlsWired = true; }
     window.addEventListener("resize", () => ui.resizeCanvas());
@@ -146,6 +154,8 @@ async function onStart() {
 async function stopApp({ showStart = false } = {}) {
   state.started = false;
   state.gesturePlaying = false;
+  stopTrackingWatchdog();
+  resetHandContinuity();
   if (recTimerId) clearInterval(recTimerId);
   if (recorder?.recorder?.state === "recording") {
     try { await recorder.stop(); } catch (_) { /* cierre de emergencia */ }
@@ -168,20 +178,18 @@ async function restartApp() {
 }
 
 // --- Bucle por frame (callback de detección) ---------------------------------
-function onHands(hands) {
+function onHands(hands, frameInfo = {}) {
+  lastTrackingCallbackWallTime = performance.now();
+  trackingTimedOut = false;
   if (state.gesturePlaying) return;
   latestHands = hands;
-  const t = performance.now() / 1000;
-  ui.setDiagnostics(
-    tracking?.fps ?? 0,
-    (engine?.ctx?.baseLatency ?? 0) + (engine?.ctx?.outputLatency ?? 0)
-  );
-  const dt = Math.max(1e-3, t - lastFrameT);
+  const fallbackTime = performance.now() / 1000;
+  const t = Number.isFinite(frameInfo.timestampSeconds)
+    ? frameInfo.timestampSeconds : fallbackTime;
+  const dt = lastFrameT != null && t > lastFrameT
+    ? Math.min(0.25, Math.max(1 / 240, t - lastFrameT))
+    : 1 / Math.max(24, tracking?.fps || 30);
   lastFrameT = t;
-
-  ui.resizeCanvas();
-  ui.clearOverlay();
-  ui.drawGuides(state.mode);
 
   if (state.mode === "duo") {
     processSide("left", hands.left, t, dt);
@@ -189,18 +197,78 @@ function onHands(hands) {
   } else {
     processClassic(hands, t, dt);
   }
+
+  // El audio queda programado antes de cualquier trabajo de canvas/DOM que
+  // pueda introducir jitter en un dispositivo lento.
+  ui.resizeCanvas();
+  ui.clearOverlay();
+  ui.drawGuides(state.mode);
+  if (hands.left) ui.drawHand("left", hands.left.landmarks, hands.left.palm);
+  if (hands.right) ui.drawHand("right", hands.right.landmarks, hands.right.palm);
+  ui.setDiagnostics(
+    tracking?.fps ?? 0,
+    (engine?.ctx?.baseLatency ?? 0) + (engine?.ctx?.outputLatency ?? 0)
+  );
+}
+
+function handAvailability(side, hand, timestamp) {
+  if (hand) {
+    missingSince[side] = null;
+    return "present";
+  }
+  if (missingSince[side] == null) missingSince[side] = timestamp;
+  return timestamp - missingSince[side] <= HAND_DROPOUT_GRACE_SECONDS
+    ? "grace" : "expired";
+}
+
+function resetHandContinuity() {
+  missingSince.left = null;
+  missingSince.right = null;
+  lastClassicVolume = 0;
+  lastFrameT = null;
+}
+
+function silenceForTrackingGap() {
+  engine?.silence("left");
+  engine?.silence("right");
+  Object.values(mappers).forEach((mapper) => mapper.reset());
+  Object.values(tuners).forEach((tuner) => tuner.reset());
+  ui.updateReadout("left", { active: false });
+  ui.updateReadout("right", { active: false });
+  ui.clearOverlay();
+  resetHandContinuity();
+}
+
+function startTrackingWatchdog() {
+  stopTrackingWatchdog();
+  lastTrackingCallbackWallTime = performance.now();
+  trackingTimedOut = false;
+  trackingWatchdogId = setInterval(() => {
+    if (!state.started || state.gesturePlaying || trackingTimedOut) return;
+    if (performance.now() - lastTrackingCallbackWallTime <= TRACKING_WATCHDOG_TIMEOUT_MS) return;
+    trackingTimedOut = true;
+    silenceForTrackingGap();
+  }, 100);
+}
+
+function stopTrackingWatchdog() {
+  if (trackingWatchdogId != null) clearInterval(trackingWatchdogId);
+  trackingWatchdogId = null;
+  trackingTimedOut = false;
 }
 
 // Modo Dúo: cada mano controla su propia voz (tono Y + volumen pinza).
 function processSide(side, hand, t, dt) {
   const voice = engine.getVoice(side);
-  if (!hand) {
-    engine.silence(side);
-    mappers[side].reset();
-    ui.updateReadout(side, { active: false });
+  const availability = handAvailability(side, hand, t);
+  if (availability !== "present") {
+    if (availability === "expired") {
+      engine.silence(side);
+      mappers[side].reset();
+      ui.updateReadout(side, { active: false });
+    }
     return;
   }
-  ui.drawHand(side, hand.landmarks, hand.palm);
 
   const m = mappers[side].process(hand, t);
   const tunedFreq = tuners[side].apply(
@@ -208,7 +276,7 @@ function processSide(side, hand, t, dt) {
   );
   const performedFrequency = side === "right" && state.drone && state.frozenFrequency
     ? state.frozenFrequency : tunedFreq;
-  voice.setFrequency(performedFrequency);
+  voice.setFrequency(performedFrequency, false, dt);
   voice.setAmplitude(m.volume);
 
   ui.updateReadout(side, {
@@ -226,43 +294,46 @@ function processClassic(hands, t, dt) {
   const right = hands.right;
   const left = hands.left;
   const voice = engine.getVoice("right");
+  const rightAvailability = handAvailability("right", right, t);
+  const leftAvailability = handAvailability("left", left, t);
 
   engine.silence("left"); // en clásico solo suena una voz
 
   // Volumen a partir de la altura de la mano izquierda (arriba = más fuerte).
-  let volume = 0;
-  if (left) {
+  let volume = leftAvailability === "grace" ? lastClassicVolume : 0;
+  if (leftAvailability === "present") {
     const lm = mappers.left.process(left, t);
     volume = normalizeCalibrated(
       lm.yNorm,
       persistedSettings.volumeCalibration.silent,
       persistedSettings.volumeCalibration.loud
     );
-    ui.drawHand("left", left.landmarks, left.palm);
+    lastClassicVolume = volume;
     ui.updateReadout("left", {
       active: true, frequency: 0, volume, yNorm: lm.yNorm, volOnly: true,
     });
     ui.readouts.left.note.textContent = "VOL";
     ui.readouts.left.freq.textContent = "control de volumen";
-  } else {
+  } else if (leftAvailability === "expired") {
     mappers.left.reset();
     ui.updateReadout("left", { active: false });
+    lastClassicVolume = 0;
   }
 
-  if (right) {
-    ui.drawHand("right", right.landmarks, right.palm);
+  if (rightAvailability === "present") {
     const m = mappers.classic.process(right, t);
     const voiceProfile = SOUND_PRESETS[state.soundPreset].voiceProfile;
     const rcaPerformance = voiceProfile === "rca" || voiceProfile === "rockmore";
     const tunedFreq = tuners.classic.apply(
-      m.frequency, m.velocity, rcaPerformance ? "free" : state.scale, state.tonicPc, dt
+      m.frequency, m.velocity, state.scale, state.tonicPc, dt
     );
     const performedFrequency = state.drone && state.frozenFrequency
       ? state.frozenFrequency : tunedFreq;
-    voice.setFrequency(performedFrequency);
+    voice.setFrequency(performedFrequency, false, dt);
     // RCA/Rockmore exige la mano de volumen: no se inventa una envolvente con
     // la pinza derecha cuando la izquierda desaparece.
-    const amplitude = left ? volume : (rcaPerformance ? 0 : m.volume);
+    const hasVolumeHand = leftAvailability === "present" || leftAvailability === "grace";
+    const amplitude = hasVolumeHand ? volume : (rcaPerformance ? 0 : m.volume);
     voice.setAmplitude(amplitude);
     ui.updateReadout("right", {
       active: true, frequency: performedFrequency,
@@ -270,10 +341,15 @@ function processClassic(hands, t, dt) {
     });
     updateTraining(performedFrequency, t);
     recordGestureFrame(performedFrequency, amplitude, t);
-  } else {
+  } else if (rightAvailability === "expired") {
     engine.silence("right");
     mappers.classic.reset();
     ui.updateReadout("right", { active: false });
+  } else {
+    // Aunque el tono se mantenga durante un dropout breve, la antena de
+    // volumen debe conservar toda su rapidez para staccato y silencio.
+    const hasVolumeHand = leftAvailability === "present" || leftAvailability === "grace";
+    voice.setAmplitude(hasVolumeHand ? volume : 0);
   }
 }
 
@@ -283,7 +359,11 @@ function wireControls() {
   ui.el.restartBtn.addEventListener("click", restartApp);
   ui.el.cameraSelect.addEventListener("change", async (event) => {
     if (!tracking) return;
+    trackingTimedOut = true;
+    silenceForTrackingGap();
     await tracking.switchCamera(event.target.value);
+    lastTrackingCallbackWallTime = performance.now();
+    trackingTimedOut = false;
     persistedSettings.cameraDeviceId = event.target.value;
     persistCurrentSettings();
   });
@@ -299,6 +379,7 @@ function wireControls() {
       engine.silence("right");
       Object.values(mappers).forEach((m) => m.reset());
       Object.values(tuners).forEach((tn) => tn.reset());
+      resetHandContinuity();
       persistCurrentSettings();
     });
   });
@@ -312,17 +393,11 @@ function wireControls() {
   ui.el.soundPresetSelect.addEventListener("change", (e) => {
     state.soundPreset = e.target.value;
     const preset = engine.setSoundPreset(state.soundPreset);
-    if (preset.cabinet) {
-      ui.el.cabinetChk.checked = true;
-      persistedSettings.cabinetEnabled = true;
-    } else engine.setCabinetEnabled(ui.el.cabinetChk.checked);
+    ui.el.cabinetChk.checked = Boolean(preset.cabinet);
+    persistedSettings.cabinetEnabled = Boolean(preset.cabinet);
+    engine.setCabinetEnabled(persistedSettings.cabinetEnabled);
     ui.el.reverbRange.value = String(Math.round(preset.reverb * 100));
     ui.setPresetDescription(preset.description);
-    if (preset.voiceProfile === "rca" || preset.voiceProfile === "rockmore") {
-      state.scale = "free";
-      ui.el.scaleSelect.value = "free";
-      Object.values(tuners).forEach((tuner) => tuner.reset());
-    }
     persistCurrentSettings();
   });
   ui.el.reverbRange.addEventListener("input", (e) => {
@@ -369,7 +444,6 @@ function wireControls() {
   ui.el.octaveUpBtn.addEventListener("click", () => {
     applyOctaveSpan(Number(ui.el.octaveSpanRange.value) + 0.5);
   });
-  ui.el.pitchAxisSelect.addEventListener("change", applyCustomPerformance);
   ui.el.pitchGlideRange.addEventListener("input", applyCustomPerformance);
   ui.el.volumeResponseRange.addEventListener("input", applyCustomPerformance);
 
@@ -434,7 +508,6 @@ function wireControls() {
 function applyPerformanceConfig(showStatus = true) {
   const minHz = Number(ui.el.pitchMinHz.value);
   const maxHz = Number(ui.el.pitchMaxHz.value);
-  const axis = ui.el.pitchAxisSelect.value;
   const pitchGlideMs = Number(ui.el.pitchGlideRange.value);
   const volumeResponseMs = Number(ui.el.volumeResponseRange.value);
 
@@ -456,12 +529,10 @@ function applyPerformanceConfig(showStatus = true) {
   mappers.classic.setPitchConfig({
     minHz,
     maxHz,
-    axis,
     inputLow: persistedSettings.pitch.inputLow,
     inputHigh: persistedSettings.pitch.inputHigh,
   });
   ui.setGuideConfig({
-    axis,
     pitchLow: persistedSettings.pitch.inputLow,
     pitchHigh: persistedSettings.pitch.inputHigh,
     volumeSilent: persistedSettings.volumeCalibration.silent,
@@ -476,9 +547,8 @@ function applyPerformanceConfig(showStatus = true) {
 
   if (showStatus) {
     const octaves = Math.log2(maxHz / minHz);
-    const direction = axis === "x" ? "horizontal" : "vertical";
     ui.setPerformanceStatus(
-      `${freqToNoteName(minHz)}–${freqToNoteName(maxHz)} · ${octaves.toFixed(2)} octavas · campo ${direction}`
+      `${freqToNoteName(minHz)}–${freqToNoteName(maxHz)} · ${octaves.toFixed(2)} octavas · campo vertical continuo`
     );
   } else ui.setPerformanceStatus("");
   if (showStatus) persistCurrentSettings();
@@ -514,7 +584,6 @@ function persistCurrentSettings() {
       ...persistedSettings.pitch,
       minHz: Number(ui.el.pitchMinHz.value),
       maxHz: Number(ui.el.pitchMaxHz.value),
-      axis: ui.el.pitchAxisSelect.value,
       glideMs: Number(ui.el.pitchGlideRange.value),
       volumeResponseMs: Number(ui.el.volumeResponseRange.value),
     },
@@ -529,8 +598,10 @@ const CALIBRATION_STEPS = [
   { hand: "left", key: "volumeLoud", text: "Coloca la mano izquierda en la posición de volumen máximo." },
 ];
 let calibrationValues = {};
+let calibrationCaptureBusy = false;
 
 function startCalibration() {
+  if (!applyPerformanceConfig(false)) return;
   calibrationStep = 0;
   calibrationValues = {};
   updateCalibrationDialog();
@@ -543,29 +614,56 @@ function updateCalibrationDialog() {
   ui.el.calibrationProgress.textContent = `${calibrationStep + 1} / ${CALIBRATION_STEPS.length}`;
 }
 
-function captureCalibrationStep() {
+async function captureCalibrationStep() {
+  if (calibrationCaptureBusy || calibrationStep < 0) return;
   const step = CALIBRATION_STEPS[calibrationStep];
-  const hand = latestHands[step.hand];
-  if (!hand) {
+  const stepIndex = calibrationStep;
+  calibrationCaptureBusy = true;
+  ui.el.calibrationCaptureBtn.disabled = true;
+  ui.el.calibrationProgress.textContent = "Midiendo posición estable…";
+
+  const samples = [];
+  const startedAt = performance.now();
+  while (
+    performance.now() - startedAt < 340
+    && calibrationStep === stepIndex
+    && ui.el.calibrationDialog.open
+  ) {
+    const hand = latestHands[step.hand];
+    if (hand) samples.push(1 - hand.palm.y);
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  }
+  calibrationCaptureBusy = false;
+  ui.el.calibrationCaptureBtn.disabled = false;
+  if (calibrationStep !== stepIndex || !ui.el.calibrationDialog.open) return;
+  if (samples.length < 6) {
     ui.el.calibrationProgress.textContent = `No se detecta la mano ${step.hand === "right" ? "derecha" : "izquierda"}.`;
     return;
   }
-  if (step.hand === "right") {
-    const raw = ui.el.pitchAxisSelect.value === "x" ? hand.palm.x : hand.palm.y;
-    calibrationValues[step.key] = 1 - raw;
-  } else calibrationValues[step.key] = 1 - hand.palm.y;
+  samples.sort((a, b) => a - b);
+  calibrationValues[step.key] = samples[Math.floor(samples.length / 2)];
 
   calibrationStep++;
   if (calibrationStep < CALIBRATION_STEPS.length) {
     updateCalibrationDialog();
     return;
   }
-  if (
-    Math.abs(calibrationValues.pitchHigh - calibrationValues.pitchLow) < 0.08
-    || Math.abs(calibrationValues.volumeLoud - calibrationValues.volumeSilent) < 0.08
-  ) {
+  const octaves = Math.log2(
+    Number(ui.el.pitchMaxHz.value) / Number(ui.el.pitchMinHz.value)
+  );
+  const minimumPitchSpan = Math.min(0.55, Math.max(0.22, octaves * 0.075));
+  if (Math.abs(calibrationValues.pitchHigh - calibrationValues.pitchLow) < minimumPitchSpan) {
     calibrationStep = 0;
-    ui.el.calibrationProgress.textContent = "Las posiciones están demasiado próximas. Repite con un recorrido mayor.";
+    calibrationValues = {};
+    ui.el.calibrationInstruction.textContent = CALIBRATION_STEPS[0].text;
+    ui.el.calibrationProgress.textContent = `El recorrido de tono es demasiado corto para ${octaves.toFixed(1)} octavas. Usa al menos el ${Math.round(minimumPitchSpan * 100)} % de la altura.`;
+    return;
+  }
+  if (Math.abs(calibrationValues.volumeLoud - calibrationValues.volumeSilent) < 0.12) {
+    calibrationStep = 0;
+    calibrationValues = {};
+    ui.el.calibrationInstruction.textContent = CALIBRATION_STEPS[0].text;
+    ui.el.calibrationProgress.textContent = "Las posiciones de volumen están demasiado próximas. Repite con un recorrido mayor.";
     return;
   }
   persistedSettings.pitch.inputLow = calibrationValues.pitchLow;

@@ -18,66 +18,70 @@ export const HAND_MODEL_URL =
 // minCutoff bajo => más suavizado en reposo (mata el temblor al sostener nota).
 // beta alto => deja pasar mejor el movimiento rápido (menos latencia al moverse).
 export const ONE_EURO = {
-  position: { minCutoff: 1.2, beta: 0.012, dCutoff: 1.0 }, // posición Y (tono)
+  position: { minCutoff: 1.8, beta: 0.32, dCutoff: 1.2 }, // posición Y (tono)
   aperture: { minCutoff: 1.5, beta: 0.010, dCutoff: 1.0 }, // apertura (volumen)
 };
 
-// --- Rangos de tono (mapeo logarítmico, 2 octavas por mano) ------------------
+// --- Rangos de tono (Dúo: 2 octavas por mano; Clásico: rango configurable) ---
 // freq = fBase * 2^(yNorm * octavas), con yNorm in [0,1] (abajo=0, arriba=1).
 export const PITCH_RANGE = {
   // Modo Dúo:
   right: { fBase: 261.63, octaves: 2 }, // C4 → C6 (mano derecha real = aguda)
   left:  { fBase: 65.41,  octaves: 2 }, // C2 → C4 (mano izquierda real = grave)
-  // Modo Clásico: una sola voz de tono con rango amplio C3 → C6 (3 octavas).
-  classic: { fBase: 130.81, octaves: 3 },
+  // Modo Clásico: extensión completa medida en el RCA modificado de Rockmore.
+  classic: { fBase: 32.70319566, octaves: 6 }, // C1 → C7
 };
 
 // --- Extensión y respuesta del modo Clásico --------------------------------
 // RCA documentó unas 3,5 octavas y un límite superior próximo a 1400 Hz. El
 // límite inferior de 123,47 Hz se deriva de esa extensión (aprox. Si2–Fa6).
-// El instrumento personal de Clara Rockmore alcanzaba unas cinco octavas; sus
-// extremos exactos dependían de afinación, por lo que usamos Do2–Do7 como rango
-// musical reproducible y claramente identificable.
+// El instrumento personal de Clara Rockmore ofrecía cinco octavas de concierto.
+// El examen del ejemplar restaurado midió unas seis (algo menos de C1 a algo más
+// de C7), aunque sus extremos eran menos estables; conservamos ambos perfiles.
 export const PERFORMANCE_PRESETS = {
+  concertFull: {
+    label: "Concierto completo · Do1–Do7 (6 oct)",
+    minHz: 32.70319566,
+    maxHz: 2093.004522,
+    pitchGlideMs: 10,
+    volumeResponseMs: 18,
+    description: "Extensión completa medida en el RCA de Clara Rockmore restaurado; arriba es agudo y abajo es grave.",
+  },
   rca1929: {
     label: "RCA 1929 · Si2–Fa6 (≈3,5 oct)",
     minHz: 123.47,
     maxHz: 1396.91,
-    axis: "x",
     pitchGlideMs: 14,
     volumeResponseMs: 55,
-    description: "Extensión RCA documentada; campo horizontal y volumen deliberadamente más amortiguado.",
+    description: "Extensión del RCA de serie documentada, adaptada al recorrido vertical de la cámara.",
   },
   rockmore: {
-    label: "Rockmore · Do2–Do7 (5 oct)",
+    label: "Rockmore estable · Do2–Do7 (5 oct)",
     minHz: 65.41,
     maxHz: 2093.0,
-    axis: "x",
     pitchGlideMs: 10,
     volumeResponseMs: 18,
-    description: "Cinco octavas y articulación rápida para legato, vibrato manual y staccato.",
+    description: "Cinco octavas de concierto estables y articulación rápida para legato, vibrato manual y staccato.",
   },
   comfortable: {
     label: "Webcam cómoda · Do3–Do6 (3 oct)",
     minHz: 130.81,
     maxHz: 1046.5,
-    axis: "y",
     pitchGlideMs: 24,
     volumeResponseMs: 35,
     description: "Menor sensibilidad espacial y control vertical, más fácil con cámaras ruidosas.",
   },
   custom: {
     label: "Personalizado",
-    minHz: 123.47,
-    maxHz: 1396.91,
-    axis: "x",
-    pitchGlideMs: 14,
-    volumeResponseMs: 30,
-    description: "Extensión, dirección y respuesta definidas por el intérprete.",
+    minHz: 32.70319566,
+    maxHz: 2093.004522,
+    pitchGlideMs: 10,
+    volumeResponseMs: 18,
+    description: "Extensión e inercia definidas por el intérprete; el tono siempre se controla en vertical.",
   },
 };
 
-export const DEFAULT_PERFORMANCE_PRESET = "rca1929";
+export const DEFAULT_PERFORMANCE_PRESET = "concertFull";
 
 // --- Mapeo de volumen (pinza pulgar–índice) ----------------------------------
 export const VOLUME = {
@@ -113,14 +117,17 @@ export const SOUND_PRESETS = {
     delay: 0,
   },
   rockmore: {
-    label: "Rockmore Concert",
-    description: "Más vocal y dulce, con articulación rápida y agudos suavizados.",
+    label: "Theremin clásico de concierto — Rockmore",
+    description: "Voz Rockmore vocal y cálida, altavoz de época y sala de concierto discreta.",
     voiceProfile: "rockmore",
-    cabinet: false,
+    cabinet: true,
     automaticVibrato: false,
     glideTimeConstant: 0.010,
     gainTimeConstant: 0.018,
-    reverb: 0.06,
+    gainAttackTimeConstant: 0.012,
+    gainReleaseTimeConstant: 0.024,
+    reverb: 0.12,
+    preDelay: 0.017,
     delay: 0,
   },
   cabinet1929: {
@@ -165,7 +172,7 @@ export const SOUND_PRESETS = {
   },
 };
 
-export const DEFAULT_SOUND_PRESET = "rca";
+export const DEFAULT_SOUND_PRESET = "rockmore";
 
 // --- Notas (español) y constantes de afinación -------------------------------
 export const NOTE_NAMES_ES = [

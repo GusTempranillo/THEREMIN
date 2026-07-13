@@ -86,7 +86,9 @@ export class AudioEngine {
     this.preDelay = this.ctx.createDelay(0.1);
     this.preDelay.delayTime.value = 0.018;
     this.convolver = this.ctx.createConvolver();
-    this.convolver.buffer = this._buildSpatialImpulse(3.4, 2.55);
+    // Sala de concierto compacta. El theremin no incorporaba reverb: esta cola
+    // representa únicamente la acústica alrededor del altavoz.
+    this.convolver.buffer = this._buildSpatialImpulse(1.6, 2.35);
     this.reverbDamping = this.ctx.createBiquadFilter();
     this.reverbDamping.type = "lowpass";
     this.reverbDamping.frequency.value = 6100;
@@ -201,7 +203,11 @@ export class AudioEngine {
     this.echoDelay.delayTime.setTargetAtTime(echoTime, now, 0.04);
     this.echoFeedback.gain.setTargetAtTime(echoFeedback, now, 0.05);
     this.reverbDamping.frequency.setTargetAtTime(
-      preset.voiceProfile === "experimental" ? 5200 : 6100, now, 0.05
+      preset.voiceProfile === "rockmore"
+        ? 4800
+        : (preset.voiceProfile === "experimental" ? 5200 : 6100),
+      now,
+      0.05
     );
     this.setReverbAmount(preset.reverb);
     this.setDelayAmount(preset.delay);
@@ -291,12 +297,21 @@ export class AudioEngine {
   _buildSpatialImpulse(seconds, decay) {
     const length = Math.floor(this.ctx.sampleRate * seconds);
     const impulse = this.ctx.createBuffer(2, length, this.ctx.sampleRate);
+    // PRNG local determinista: la sala conserva exactamente el mismo carácter
+    // entre arranques y dispositivos, a diferencia de Math.random().
+    let noiseState = (0x6d2b79f5 ^ length) >>> 0;
+    const nextNoise = () => {
+      noiseState ^= noiseState << 13;
+      noiseState ^= noiseState >>> 17;
+      noiseState ^= noiseState << 5;
+      return ((noiseState >>> 0) / 0x80000000) - 1;
+    };
     for (let channel = 0; channel < 2; channel++) {
       const data = impulse.getChannelData(channel);
       let dampedNoise = 0;
       for (let i = 0; i < length; i++) {
         const t = i / length;
-        const noise = Math.random() * 2 - 1;
+        const noise = nextNoise();
         const damping = 0.38 - t * 0.28;
         dampedNoise += (noise - dampedNoise) * damping;
         const envelope = Math.pow(1 - t, decay);

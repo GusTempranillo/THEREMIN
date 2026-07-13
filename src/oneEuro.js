@@ -44,6 +44,7 @@ export class OneEuroFilter {
     this.xFilter = new LowPassFilter();
     this.dxFilter = new LowPassFilter();
     this.tPrev = null;
+    this.xPrevRaw = null;
   }
 
   // value: muestra cruda. timestamp: segundos (p. ej. performance.now()/1000).
@@ -52,17 +53,21 @@ export class OneEuroFilter {
       const dt = timestamp - this.tPrev;
       this.tPrev = timestamp;
 
-      // Estimación de la derivada, filtrada con corte fijo dCutoff.
-      const dxRaw = (value - (this.xFilter.hatXPrev ?? value)) / dt;
+      // El algoritmo One Euro deriva muestras crudas consecutivas. Derivar
+      // contra la salida filtrada acumularía error y daría una respuesta
+      // elástica al invertir el movimiento.
+      const dxRaw = (value - (this.xPrevRaw ?? value)) / dt;
       const edx = this.dxFilter.filter(dxRaw, smoothingAlpha(this.dCutoff, dt));
 
       // Corte adaptativo: cuanto más rápido cambia, mayor el corte (menos suavizado).
       const cutoff = this.minCutoff + this.beta * Math.abs(edx);
+      this.xPrevRaw = value;
       return this.xFilter.filter(value, smoothingAlpha(cutoff, dt));
     }
 
     // Primera muestra (o reloj sin avanzar): inicializa sin filtrar.
     this.tPrev = timestamp;
+    this.xPrevRaw = value;
     this.dxFilter.filter(0, 1);
     return this.xFilter.filter(value, 1);
   }
@@ -71,5 +76,6 @@ export class OneEuroFilter {
     this.xFilter.reset();
     this.dxFilter.reset();
     this.tPrev = null;
+    this.xPrevRaw = null;
   }
 }

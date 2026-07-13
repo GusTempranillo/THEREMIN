@@ -1,15 +1,21 @@
 // =============================================================================
 // thereminVoice.js — voz RCA/Rockmore y voz Sci‑Fi band-limited
 // =============================================================================
-// La voz RCA usa seis PeriodicWave en paralelo, medidas conceptualmente por
+// La voz RCA usa siete PeriodicWave en paralelo, medidas conceptualmente por
 // registro. Las ondas graves son ricas y de balance tipo pulso redondeado; las
 // agudas pierden armónicos hasta aproximarse a una senoide. El crossfade entre
 // anclas es equal-power y conserva la continuidad de fase/frecuencia.
 // =============================================================================
 
 import { DEFAULT_SOUND_PRESET, SOUND_PRESETS } from "./config.js";
+import {
+  continuousPitchTransition,
+  scheduleContinuousFrequency,
+  updateFrameIntervalEstimate,
+} from "./pitchTrajectory.js";
 
 const RCA_ANCHORS = [
+  { frequency: 32.703, duty: 0.26, richness: 1.06, rolloff: 16 }, // C1
   { frequency: 65.41,  duty: 0.28, richness: 1.00, rolloff: 14 }, // C2
   { frequency: 130.81, duty: 0.30, richness: 0.88, rolloff: 12 }, // C3
   { frequency: 261.63, duty: 0.34, richness: 0.66, rolloff: 9 },  // C4
@@ -85,6 +91,8 @@ export class ThereminVoice {
     this.workletNode = null;
     this.targetFreq = options.baseFreq ?? 220;
     this.targetAmp = 0;
+    this.currentGainTarget = 0;
+    this.controlIntervalEstimate = 1 / 30;
     this.presetKey = DEFAULT_SOUND_PRESET;
     this.started = false;
     this.vibratoActive = false;
@@ -315,7 +323,7 @@ export class ThereminVoice {
     this._updateVibrato(true);
   }
 
-  setFrequency(hz, immediate = false) {
+  setFrequency(hz, immediate = false, controlIntervalSeconds = null) {
     if (!Number.isFinite(hz) || hz <= 0) return;
     this.targetFreq = hz;
     if (!this.started) return;
@@ -324,17 +332,26 @@ export class ThereminVoice {
     const glide = immediate
       ? 0.001
       : (this.controlResponse.pitchGlideSeconds ?? preset.glideTimeConstant);
+    this.controlIntervalEstimate = updateFrameIntervalEstimate(
+      this.controlIntervalEstimate,
+      controlIntervalSeconds
+    );
+    const transition = continuousPitchTransition(glide, this.controlIntervalEstimate);
     if (this.workletNode) {
-      this.workletNode.parameters.get("frequency").setTargetAtTime(hz, now, glide);
+      scheduleContinuousFrequency(
+        this.workletNode.parameters.get("frequency"), hz, now, transition, immediate
+      );
       this._updateFilter(hz, immediate);
       return;
     }
     for (const { oscillator } of this.rcaSources) {
-      oscillator.frequency.setTargetAtTime(hz, now, glide);
+      scheduleContinuousFrequency(oscillator.frequency, hz, now, transition, immediate);
     }
-    this.sciFiSource.frequency.setTargetAtTime(hz, now, glide);
+    scheduleContinuousFrequency(this.sciFiSource.frequency, hz, now, transition, immediate);
     for (const { oscillator, ratio } of this.experimentalSources) {
-      oscillator.frequency.setTargetAtTime(hz * ratio, now, glide);
+      scheduleContinuousFrequency(
+        oscillator.frequency, hz * ratio, now, transition, immediate
+      );
     }
     this._updateRcaWeights(hz, immediate);
     this._updateFilter(hz, immediate);
@@ -400,8 +417,13 @@ export class ThereminVoice {
     } else gain = Math.pow(this.targetAmp, 1.12);
 
     const now = this.ctx.currentTime;
-    const response = this.controlResponse.volumeResponseSeconds ?? preset.gainTimeConstant;
-    this.voiceGain.gain.setTargetAtTime(gain * this.maxGain, now, response);
+    const gainTarget = gain * this.maxGain;
+    const profileResponse = gainTarget >= this.currentGainTarget
+      ? (preset.gainAttackTimeConstant ?? preset.gainTimeConstant)
+      : (preset.gainReleaseTimeConstant ?? preset.gainTimeConstant);
+    const response = this.controlResponse.volumeResponseSeconds ?? profileResponse;
+    this.voiceGain.gain.setTargetAtTime(gainTarget, now, response);
+    this.currentGainTarget = gainTarget;
     this._updateVibrato(false);
   }
 

@@ -133,9 +133,9 @@ export class HandTracking {
     const useRVFC = typeof this.video.requestVideoFrameCallback === "function";
     this._usingRVFC = useRVFC;
 
-    const tick = () => {
+    const tick = (frameTimestampMs) => {
       if (!this.running) return;
-      this._processFrame();
+      this._processFrame(frameTimestampMs);
       this._rafId = useRVFC
         ? this.video.requestVideoFrameCallback(tick)
         : requestAnimationFrame(tick);
@@ -146,13 +146,14 @@ export class HandTracking {
       : requestAnimationFrame(tick);
   }
 
-  _processFrame() {
+  _processFrame(frameTimestampMs = performance.now()) {
     if (!this.landmarker || this.video.readyState < 2) return;
 
     // Evita procesar el mismo frame dos veces (rVFC ya lo garantiza, rAF no).
     if (this.video.currentTime === this._lastVideoTime) return;
     this._lastVideoTime = this.video.currentTime;
-    const frameClock = performance.now();
+    const frameClock = Number.isFinite(frameTimestampMs)
+      ? frameTimestampMs : performance.now();
     if (this._lastFrameClock) {
       const instantFps = 1000 / Math.max(1, frameClock - this._lastFrameClock);
       this.fps = this.fps ? this.fps * 0.9 + instantFps * 0.1 : instantFps;
@@ -161,17 +162,25 @@ export class HandTracking {
 
     let result;
     try {
-      let timestamp = performance.now();
+      let timestamp = frameClock;
       if (timestamp <= this._lastTimestamp) timestamp = this._lastTimestamp + 1;
       this._lastTimestamp = timestamp;
       result = this.landmarker.detectForVideo(this.video, timestamp);
     } catch (err) {
       // Un frame ocasional puede fallar si el GPU pipeline aún no está listo.
+      if (this.onResults) {
+        this.onResults(
+          { left: null, right: null },
+          { timestampSeconds: timestamp / 1000, inferenceError: true }
+        );
+      }
       return;
     }
 
     const hands = this._interpretHands(result);
-    if (this.onResults) this.onResults(hands);
+    if (this.onResults) {
+      this.onResults(hands, { timestampSeconds: timestamp / 1000 });
+    }
   }
 
   // Devuelve { left, right } donde cada uno es null o un objeto con landmarks,

@@ -7,11 +7,12 @@ controla el **volumen**. El sonido se sintetiza con la **Web Audio API** nativa,
 buscando un timbre cálido y expresivo cercano a un theremin analógico.
 
 - 🎥 **Vídeo 100% on-device.** Nunca se sube nada a ningún servidor.
-- 🎚️ **Tono logarítmico continuo** (glissando auténtico) en 2 octavas por mano.
+- 🎚️ **Tono logarítmico continuo**: cada frame de cámara se interpola a
+  frecuencia de audio, sin sample-and-hold ni peldaños en escala Libre.
 - 🎯 **Modo escala "afina al parar":** mientras mueves la mano el tono es libre;
   cuando te detienes, se atrae suavemente a la nota de la escala más cercana.
-- 🔊 **Tres perfiles DSP:** RCA/Rockmore, RCA con Cabinet 1929 modelado y
-  Ciencia ficción moderna.
+- 🔊 **Cinco perfiles DSP:** RCA, Rockmore de concierto, RCA con Cabinet 1929,
+  Ciencia ficción moderna y Órbita prismática.
 - 🎙️ **Grabación SOLO audio** (WebM/Opus + descarga opcional en WAV).
 - 🌌 **Hall amortiguada, eco y limitador de último recurso** con headroom.
 - 🌑 Interfaz minimalista en modo oscuro.
@@ -25,18 +26,20 @@ buscando un timbre cálido y expresivo cercano a un theremin analógico.
 | Acción | Efecto |
 | --- | --- |
 | Dúo: subir / bajar una mano | Cambia el **tono** (arriba = agudo) |
-| Clásico histórico: acercar la derecha a la antena virtual | Sube el **tono** |
+| Clásico: subir / bajar la mano derecha | Recorre el **tono continuo** (arriba = agudo) |
 | Abrir / cerrar pinza pulgar–índice | Cambia el **volumen** |
 | Mano **derecha** | Rango **agudo** (C4–C6) |
 | Mano **izquierda** | Rango **grave** (C2–C4) |
 
-- **Modo Dúo** (por defecto): cada mano es una voz independiente (tono + volumen).
-- **Modo Clásico**: una sola voz. Mano derecha = tono; mano izquierda = volumen
-  según su altura. La extensión y dirección se eligen en Configuración
-  interpretativa.
+- **Modo Clásico** (por defecto): una sola voz. Mano derecha = tono vertical;
+  mano izquierda = volumen según su altura. La dirección no se configura:
+  arriba siempre es agudo y abajo siempre es grave.
+- **Modo Dúo**: cada mano es una voz independiente (tono + volumen).
 - **Escala**: **Libre** (por defecto) · Cromática · Pentatónica · Mayor · menor,
   con **tónica** seleccionable (Do por defecto).
 - **Sonido**:
+  - **Theremin clásico de concierto — Rockmore** (por defecto): perfil vocal,
+    cabinet de época, vibrato exclusivamente manual y sala discreta sin eco.
   - **Clásico — RCA/Rockmore:** banco de ondas interpoladas por registro;
     grave rico tipo cello, medio vocal y agudo progresivamente sinusoidal.
     No añade vibrato automático.
@@ -53,22 +56,30 @@ buscando un timbre cálido y expresivo cercano a un theremin analógico.
 
 El modo Clásico ofrece perfiles de ejecución independientes del timbre:
 
-- **RCA 1929:** Si2–Fa6, aproximadamente 3,5 octavas, control horizontal tipo
-  antena, 14 ms de suavizado de tono y 55 ms de respuesta de volumen. El límite
+- **Concierto completo** (por defecto): Do1–Do7, seis octavas medidas en el RCA
+  modificado de Clara Rockmore después de su restauración. Incluye los extremos
+  medibles; Do2–Do7 sigue siendo el tramo de concierto más estable.
+- **RCA 1929:** Si2–Fa6, aproximadamente 3,5 octavas, 14 ms de inercia de tono
+  y 55 ms de respuesta de volumen. El límite
   superior sigue la especificación RCA de aproximadamente 1400 Hz; el inferior
   se deriva de la extensión documentada.
-- **Rockmore:** Do2–Do7, cinco octavas, control horizontal, 10 ms de suavizado y
+- **Rockmore estable:** Do2–Do7, cinco octavas utilizables, 10 ms de inercia y
   18 ms de volumen para permitir articulación rápida.
-- **Webcam cómoda:** Do3–Do6, tres octavas, control vertical y más suavizado.
-- **Personalizado:** frecuencias mínima/máxima, eje del tono y tiempos de
-  respuesta configurables. La extensión puede aumentarse o reducirse en pasos
+- **Webcam cómoda:** Do3–Do6, tres octavas y más suavizado.
+- **Personalizado:** frecuencias mínima/máxima y tiempos de respuesta
+  configurables. La extensión puede aumentarse o reducirse en pasos
   de media octava mediante deslizador o botones −/+; el límite superior se
   recalcula conservando la frecuencia mínima. El panel muestra notas, octavas
   reales y valida el rango.
 
-Los extremos exactos del instrumento personal de Clara Rockmore dependían de
-su afinación; Do2–Do7 es una normalización musical de sus cinco octavas, no una
-afirmación de que estuviera permanentemente ajustado a esas dos notas.
+La interpolación que une fotogramas no se puede desactivar: garantiza la
+continuidad. El control **Inercia** sólo añade portamento expresivo por encima
+del mínimo adaptativo necesario para cubrir la cadencia real de la cámara.
+
+Do1 (32,7 Hz) puede no reproducirse como fundamental en altavoces de portátil o
+móvil; el motor conserva sus armónicos en vez de inventar un refuerzo subgrave.
+Los extremos medibles del instrumento real podían derivar, por eso el panel
+mantiene también el perfil Rockmore estable de cinco octavas.
 
 ## Probar en local
 
@@ -113,6 +124,7 @@ cámara. Verás el vídeo espejado con el overlay de landmarks y oirás las voce
     ├── handTracking.js  # HandLandmarker + bucle de detección
     ├── oneEuro.js       # filtro One Euro (suavizado de entrada)
     ├── mapping.js       # landmarks → frecuencia (log) y volumen (pinza)
+    ├── pitchTrajectory.js # rampas audio-rate entre frames de cámara
     ├── scale.js         # escalas + afinación "afina al parar"
     ├── thereminVoice.js # wavetables por registro, vibrato y VCA
     ├── theremin-worklet.js # fuente aditiva AudioWorklet band-limited
@@ -129,9 +141,11 @@ motor DSP y la robustez de tracking de la primera versión:
 
 - fallback automático GPU → CPU para MediaPipe;
 - timestamps monotónicos y detección sincronizada con frames de vídeo;
+- interpolación exponencial por `AudioParam`, lineal en octavas/cents, que
+  cubre adaptativamente el intervalo de cada frame;
 - asignación por posición en pantalla, independiente de la interpretación de
   handedness de cada cámara;
-- seis wavetables RCA/Rockmore con crossfade equal-power por registro;
+- siete wavetables RCA/Rockmore (Do1–Do7) con crossfade por registro;
 - fuente Sci-Fi band-limited y saturación asimétrica sobremuestreada;
 - Cabinet 1929 modelado como etapa de salida independiente;
 - carga opcional de una IR de cabinet medida por el usuario;
@@ -140,8 +154,10 @@ motor DSP y la robustez de tracking de la primera versión:
 
 ## Calibración y sesión
 
-El asistente captura grave/agudo con la mano derecha y silencio/forte con la
-izquierda. Los límites espaciales se guardan localmente. La cabecera permite
+El asistente captura durante 340 ms y usa la mediana de cada pose: grave/agudo
+con la mano derecha y silencio/forte con la izquierda. Para rangos amplios
+exige un recorrido vertical suficiente, evitando comprimir seis octavas en unos
+pocos píxeles. Los límites espaciales se guardan localmente. La cabecera permite
 cambiar de cámara, detener y reiniciar liberando stream, landmarker,
 osciladores, grabador y `AudioContext`. La asociación temporal de palmas reduce
 el intercambio de roles cuando las manos se cruzan.
@@ -171,23 +187,26 @@ Los valores de síntesis y de "tacto" (vibrato, glide, umbrales de la escala,
 parámetros del One Euro, etc.) están centralizados en
 [`src/config.js`](src/config.js) para afinarlos a oído sin tocar la lógica.
 
-## Desplegar en Cloudflare Pages
+## Desplegar en Vercel
 
-La app es **100% estática**, así que el despliegue es directo. HTTPS es
-obligatorio para que `getUserMedia` funcione en producción (Cloudflare Pages lo
-da automáticamente).
+La app es **100% estática** y ya incluye `vercel.json`. HTTPS es obligatorio
+para `getUserMedia` y Vercel lo proporciona automáticamente.
 
 1. Sube este repositorio a GitHub.
-2. En el panel de Cloudflare → **Workers & Pages** → **Create application** →
-   **Pages** → **Connect to Git**, y elige el repo.
-3. Configuración de build:
-   - **Framework preset:** `None`
-   - **Build command:** *(vacío)*
-   - **Build output directory:** `/` (la raíz del repo)
-4. **Deploy.** Obtendrás una URL pública con HTTPS donde la webcam funciona.
+2. Conecta el repositorio en Vercel con **Framework preset: Other/None** y sin
+   comando de build.
+3. Cada `git push origin main` desplegará automáticamente
+   `https://theremin-web.vercel.app/` si la integración sigue activa.
 
 > No hay paso de build ni variables de entorno. Cualquier hosting de estáticos con
 > HTTPS (GitHub Pages, Netlify, Vercel) sirve igual.
+
+## Referencias históricas
+
+- [RCA Theremin Service Notes (1929)](https://www.rcatheremin.com/servicenotes.php)
+- [Biografía oficial de Clara Rockmore](https://nadiareisenberg-clararockmore.org/clara-rockmore-biography/)
+- [Informe técnico del RCA de Clara Rockmore](https://www.rcatheremin.com/documents/Clara_RCA_Report.pdf)
+- [Formas de onda y evolución tímbrica del RCA](https://www.rcatheremin.com/tone.php)
 
 ## Privacidad
 
