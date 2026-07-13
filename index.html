@@ -29,6 +29,12 @@
     <header class="topbar">
       <h2 class="brand">Theremin <span class="accent">Web</span></h2>
       <p class="privacy-inline">🔒 Vídeo 100% on-device · nunca se sube nada.</p>
+      <span id="diagnostics" class="diagnostics">FPS — · latencia —</span>
+      <div class="session-controls">
+        <select id="cameraSelect" aria-label="Cámara"></select>
+        <button id="restartBtn" type="button">Reiniciar</button>
+        <button id="stopBtn" type="button">Detener</button>
+      </div>
     </header>
 
     <section class="stage">
@@ -85,6 +91,7 @@
         <label for="soundPresetSelect">Sonido</label>
         <select id="soundPresetSelect">
           <option value="rca" selected>Clásico — RCA/Rockmore</option>
+          <option value="rockmore">Rockmore Concert</option>
           <option value="cabinet1929">RCA + Cabinet 1929</option>
           <option value="scifi">Ciencia ficción moderna</option>
           <option value="experimental">Órbita prismática — experimental</option>
@@ -184,7 +191,49 @@
         Extensión RCA documentada; campo horizontal y volumen deliberadamente más amortiguado.
       </p>
       <p id="performanceStatus" class="config-status" aria-live="polite"></p>
+      <div class="config-actions">
+        <button id="calibrateBtn" type="button">Calibrar manos</button>
+        <label class="chk"><input id="trainingChk" type="checkbox" /> Modo entrenamiento</label>
+        <button id="resetSettingsBtn" type="button">Restablecer ajustes</button>
+        <label class="chk"><input id="cabinetChk" type="checkbox" /> Cabinet 1929</label>
+        <label class="ir-upload">Cargar IR real <input id="cabinetIrInput" type="file" accept="audio/*" /></label>
+      </div>
     </details>
+
+    <section id="trainingPanel" class="training-panel hidden" aria-live="polite">
+      <strong>Entrenamiento</strong>
+      <span id="trainingCents">0 ¢</span>
+      <span id="trainingStability">estabilidad —</span>
+      <span id="trainingVibrato">vibrato —</span>
+    </section>
+
+    <section class="creative-tools">
+      <div>
+        <h3>Laboratorio creativo</h3>
+        <p>X transforma la voz hacia Órbita prismática; Y abre espacio y eco.</p>
+      </div>
+      <div class="xy-controls">
+        <label>Carácter X <input id="creativeX" type="range" min="0" max="100" value="0" /></label>
+        <label>Espacio Y <input id="creativeY" type="range" min="0" max="100" value="0" /></label>
+      </div>
+      <div class="creative-actions">
+        <button id="droneBtn" type="button">Congelar nota</button>
+        <button id="gestureRecBtn" type="button">Grabar gestos</button>
+        <button id="gesturePlayBtn" type="button" disabled>Reproducir</button>
+        <button id="gestureExportBtn" type="button" disabled>Exportar JSON</button>
+        <label class="gesture-import">Importar JSON <input id="gestureImportInput" type="file" accept="application/json,.json" /></label>
+      </div>
+    </section>
+
+    <dialog id="calibrationDialog" class="calibration-dialog">
+      <h3>Calibración</h3>
+      <p id="calibrationInstruction"></p>
+      <p id="calibrationProgress"></p>
+      <div>
+        <button id="calibrationCaptureBtn" type="button">Capturar posición</button>
+        <button id="calibrationCancelBtn" type="button">Cancelar</button>
+      </div>
+    </dialog>
 
     <!-- Resultado de grabación -->
     <section id="recResult" class="rec-result hidden">

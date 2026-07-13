@@ -27,6 +27,10 @@ export class HandTracking {
     this._lastVideoTime = -1;
     this._lastTimestamp = 0;
     this.onResults = null; // callback(framePayload)
+    this.deviceId = "";
+    this._tracks = { left: null, right: null };
+    this.fps = 0;
+    this._lastFrameClock = 0;
   }
 
   // Crea el HandLandmarker (descarga WASM + modelo). Llamar una sola vez.
@@ -53,9 +57,16 @@ export class HandTracking {
   }
 
   // Pide la cámara y empieza a reproducir el vídeo (sin audio).
-  async startCamera() {
+  async startCamera(deviceId = "") {
+    if (this.stream) this.stream.getTracks().forEach((track) => track.stop());
+    this.deviceId = deviceId || "";
     this.stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+      video: {
+        ...(deviceId ? { deviceId: { exact: deviceId } } : { facingMode: "user" }),
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        frameRate: { ideal: 60, max: 60 },
+      },
       audio: false,
     });
     this.video.srcObject = this.stream;
@@ -68,13 +79,32 @@ export class HandTracking {
     }
   }
 
+  async listCameras() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    return devices
+      .filter((device) => device.kind === "videoinput")
+      .map((device, index) => ({
+        deviceId: device.deviceId,
+        label: device.label || `Cámara ${index + 1}`,
+      }));
+  }
+
+  async switchCamera(deviceId) {
+    const wasRunning = this.running;
+    this.stop(false);
+    await this.startCamera(deviceId);
+    this._lastVideoTime = -1;
+    this._tracks = { left: null, right: null };
+    if (wasRunning) this.start();
+  }
+
   start() {
     if (this.running) return;
     this.running = true;
     this._loop();
   }
 
-  stop() {
+  stop(releaseStream = true) {
     this.running = false;
     if (this._rafId != null) {
       if (this.video.cancelVideoFrameCallback && this._usingRVFC) {
@@ -84,10 +114,17 @@ export class HandTracking {
       }
       this._rafId = null;
     }
-    if (this.stream) {
+    if (releaseStream && this.stream) {
       this.stream.getTracks().forEach((t) => t.stop());
       this.stream = null;
     }
+  }
+
+  close() {
+    this.stop(true);
+    try { this.landmarker?.close(); } catch (_) { /* API no disponible */ }
+    this.landmarker = null;
+    this._tracks = { left: null, right: null };
   }
 
   // Bucle de detección: usa requestVideoFrameCallback si está disponible
@@ -115,6 +152,12 @@ export class HandTracking {
     // Evita procesar el mismo frame dos veces (rVFC ya lo garantiza, rAF no).
     if (this.video.currentTime === this._lastVideoTime) return;
     this._lastVideoTime = this.video.currentTime;
+    const frameClock = performance.now();
+    if (this._lastFrameClock) {
+      const instantFps = 1000 / Math.max(1, frameClock - this._lastFrameClock);
+      this.fps = this.fps ? this.fps * 0.9 + instantFps * 0.1 : instantFps;
+    }
+    this._lastFrameClock = frameClock;
 
     let result;
     try {
@@ -149,20 +192,66 @@ export class HandTracking {
         landmarks,
         palm,
         score: handedness?.score ?? 1,
+        handedness: handedness?.categoryName ?? "Unknown",
       };
 
       detected.push(payload);
     }
-    detected.sort((a, b) => a.palm.x - b.palm.x);
-    if (detected.length === 1) {
-      // x menor aparece a la derecha de la pantalla tras el espejo CSS.
-      out[detected[0].palm.x < 0.5 ? "right" : "left"] = detected[0];
+    this._assignTrackedHands(detected, out);
+    return out;
+  }
+
+  _assignTrackedHands(detected, out) {
+    if (!detected.length) {
+      for (const side of ["left", "right"]) {
+        if (this._tracks[side]) this._tracks[side].missing++;
+        if (this._tracks[side]?.missing > 12) this._tracks[side] = null;
+      }
+      return;
+    }
+
+    const distance = (hand, track) => {
+      if (!track) return 1e6;
+      const predictedX = track.x + track.vx;
+      const predictedY = track.y + track.vy;
+      return Math.hypot(hand.palm.x - predictedX, hand.palm.y - predictedY);
+    };
+
+    if (detected.length >= 2 && this._tracks.left && this._tracks.right) {
+      const a = detected[0], b = detected[1];
+      const direct = distance(a, this._tracks.left) + distance(b, this._tracks.right);
+      const swapped = distance(a, this._tracks.right) + distance(b, this._tracks.left);
+      if (direct <= swapped) { out.left = a; out.right = b; }
+      else { out.left = b; out.right = a; }
     } else if (detected.length >= 2) {
-      // No se pierde una mano aunque ambas estén en la misma mitad del frame.
+      detected.sort((a, b) => a.palm.x - b.palm.x);
       out.right = detected[0];
       out.left = detected[detected.length - 1];
+    } else {
+      const hand = detected[0];
+      const leftCost = distance(hand, this._tracks.left);
+      const rightCost = distance(hand, this._tracks.right);
+      let side;
+      if (Math.min(leftCost, rightCost) < 0.32) side = leftCost <= rightCost ? "left" : "right";
+      else side = hand.palm.x < 0.5 ? "right" : "left";
+      out[side] = hand;
     }
-    return out;
+
+    for (const side of ["left", "right"]) {
+      const hand = out[side];
+      if (!hand) {
+        if (this._tracks[side]) this._tracks[side].missing++;
+        continue;
+      }
+      const previous = this._tracks[side];
+      this._tracks[side] = {
+        x: hand.palm.x,
+        y: hand.palm.y,
+        vx: previous ? (hand.palm.x - previous.x) * 0.65 + previous.vx * 0.35 : 0,
+        vy: previous ? (hand.palm.y - previous.y) * 0.65 + previous.vy * 0.35 : 0,
+        missing: 0,
+      };
+    }
   }
 
   _palmCentroid(landmarks) {

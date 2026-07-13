@@ -8,10 +8,11 @@
 
 import { HandTracking } from "./handTracking.js";
 import { HandMapper } from "./mapping.js";
-import { ScaleTuner, freqToNoteName } from "./scale.js";
+import { ScaleTuner, freqToMidi, freqToNoteName } from "./scale.js";
 import { AudioEngine } from "./audioEngine.js";
 import { AudioRecorder, blobToWav } from "./recorder.js";
 import { UI } from "./ui.js";
+import { loadSettings, normalizeCalibrated, resetSettings, saveSettings } from "./settings.js";
 import {
   DEFAULT_PERFORMANCE_PRESET,
   DEFAULT_SOUND_PRESET,
@@ -19,13 +20,22 @@ import {
   SOUND_PRESETS,
 } from "./config.js";
 
+let persistedSettings = loadSettings();
 const state = {
-  mode: "duo",            // "duo" | "classic"
-  scale: "free",
-  tonicPc: 0,             // 0 = Do
-  soundPreset: DEFAULT_SOUND_PRESET,
-  performancePreset: DEFAULT_PERFORMANCE_PRESET,
+  mode: persistedSettings.mode ?? "duo",
+  scale: persistedSettings.scale ?? "free",
+  tonicPc: persistedSettings.tonicPc ?? 0,
+  soundPreset: SOUND_PRESETS[persistedSettings.soundPreset]
+    ? persistedSettings.soundPreset : DEFAULT_SOUND_PRESET,
+  performancePreset: PERFORMANCE_PRESETS[persistedSettings.performancePreset]
+    ? persistedSettings.performancePreset : DEFAULT_PERFORMANCE_PRESET,
   started: false,
+  drone: false,
+  frozenFrequency: null,
+  gestureRecording: false,
+  gestureStart: 0,
+  gestureEvents: [],
+  gesturePlaying: false,
 };
 
 const ui = new UI();
@@ -34,6 +44,10 @@ const ui = new UI();
 let engine = null;
 let tracking = null;
 let recorder = null;
+let latestHands = { left: null, right: null };
+let controlsWired = false;
+let calibrationStep = -1;
+let pitchHistory = [];
 
 // Mapeadores: en Dúo, una por mano; en Clásico, una de tono + control de vol.
 const mappers = {
@@ -51,6 +65,23 @@ ui.setPerformancePanel(
   state.performancePreset,
   PERFORMANCE_PRESETS[state.performancePreset]
 );
+ui.el.soundPresetSelect.value = state.soundPreset;
+ui.el.scaleSelect.value = state.scale;
+ui.el.tonicSelect.value = String(state.tonicPc);
+ui.el.trainingChk.checked = Boolean(persistedSettings.trainingEnabled);
+ui.el.cabinetChk.checked = Boolean(persistedSettings.cabinetEnabled);
+ui.el.reverbRange.value = String(Math.round(persistedSettings.reverb * 100));
+ui.el.modeToggle.querySelectorAll(".seg-btn").forEach((button) => {
+  button.classList.toggle("active", button.dataset.mode === state.mode);
+});
+ui.setTraining({ enabled: Boolean(persistedSettings.trainingEnabled) });
+for (const [id, value] of [
+  ["pitchMinHz", persistedSettings.pitch.minHz],
+  ["pitchMaxHz", persistedSettings.pitch.maxHz],
+  ["pitchAxisSelect", persistedSettings.pitch.axis],
+  ["pitchGlideRange", persistedSettings.pitch.glideMs],
+  ["volumeResponseRange", persistedSettings.pitch.volumeResponseMs],
+]) ui.el[id].value = String(value);
 applyPerformanceConfig(false);
 
 let lastFrameT = performance.now() / 1000;
@@ -66,7 +97,7 @@ async function onStart() {
     ui.setStartStatus("Iniciando audio…");
     engine = new AudioEngine();
     await engine.resume();
-    engine.setupVoices();
+    await engine.setupVoices();
     applyPerformanceConfig(false);
 
     ui.setStartStatus("Cargando modelo de manos…");
@@ -74,12 +105,17 @@ async function onStart() {
     await tracking.init();
 
     ui.setStartStatus("Pidiendo cámara…");
-    await tracking.startCamera();
+    await tracking.startCamera(persistedSettings.cameraDeviceId);
+    const cameras = await tracking.listCameras();
+    const activeDevice = tracking.stream?.getVideoTracks()?.[0]?.getSettings()?.deviceId ?? "";
+    ui.setCameras(cameras, activeDevice);
 
     // Aplica el perfil completo (voz, cabinet y efectos) antes de abrir el loop.
     const preset = engine.setSoundPreset(ui.el.soundPresetSelect.value, true);
     state.soundPreset = ui.el.soundPresetSelect.value;
-    ui.el.reverbRange.value = String(Math.round(preset.reverb * 100));
+    engine.setReverbAmount(persistedSettings.reverb ?? preset.reverb);
+    engine.setCabinetEnabled(Boolean(persistedSettings.cabinetEnabled), true);
+    ui.el.reverbRange.value = String(Math.round((persistedSettings.reverb ?? preset.reverb) * 100));
     ui.setPresetDescription(preset.description);
 
     // Grabación (solo audio) desde la mezcla maestra.
@@ -93,7 +129,7 @@ async function onStart() {
 
     state.started = true;
     ui.showApp();
-    wireControls();
+    if (!controlsWired) { wireControls(); controlsWired = true; }
     window.addEventListener("resize", () => ui.resizeCanvas());
   } catch (err) {
     console.error(err);
@@ -107,14 +143,45 @@ async function onStart() {
   }
 }
 
+async function stopApp({ showStart = false } = {}) {
+  state.started = false;
+  state.gesturePlaying = false;
+  if (recTimerId) clearInterval(recTimerId);
+  if (recorder?.recorder?.state === "recording") {
+    try { await recorder.stop(); } catch (_) { /* cierre de emergencia */ }
+  }
+  tracking?.close();
+  tracking = null;
+  recorder = null;
+  await engine?.close();
+  engine = null;
+  if (showStart) {
+    ui.el.app.classList.add("hidden");
+    ui.el.startScreen.classList.remove("hidden");
+  }
+  ui.el.startBtn.disabled = false;
+}
+
+async function restartApp() {
+  await stopApp();
+  await onStart();
+}
+
 // --- Bucle por frame (callback de detección) ---------------------------------
 function onHands(hands) {
+  if (state.gesturePlaying) return;
+  latestHands = hands;
   const t = performance.now() / 1000;
+  ui.setDiagnostics(
+    tracking?.fps ?? 0,
+    (engine?.ctx?.baseLatency ?? 0) + (engine?.ctx?.outputLatency ?? 0)
+  );
   const dt = Math.max(1e-3, t - lastFrameT);
   lastFrameT = t;
 
   ui.resizeCanvas();
   ui.clearOverlay();
+  ui.drawGuides(state.mode);
 
   if (state.mode === "duo") {
     processSide("left", hands.left, t, dt);
@@ -139,12 +206,18 @@ function processSide(side, hand, t, dt) {
   const tunedFreq = tuners[side].apply(
     m.frequency, m.velocity, state.scale, state.tonicPc, dt
   );
-  voice.setFrequency(tunedFreq);
+  const performedFrequency = side === "right" && state.drone && state.frozenFrequency
+    ? state.frozenFrequency : tunedFreq;
+  voice.setFrequency(performedFrequency);
   voice.setAmplitude(m.volume);
 
   ui.updateReadout(side, {
-    active: true, frequency: tunedFreq, volume: m.volume, yNorm: m.yNorm,
+    active: true, frequency: performedFrequency, volume: m.volume, yNorm: m.yNorm,
   });
+  if (side === "right") {
+    updateTraining(performedFrequency, t);
+    recordGestureFrame(performedFrequency, m.volume, t);
+  }
 }
 
 // Modo Clásico: mano derecha = tono (rango amplio); mano izquierda = volumen
@@ -160,7 +233,11 @@ function processClassic(hands, t, dt) {
   let volume = 0;
   if (left) {
     const lm = mappers.left.process(left, t);
-    volume = lm.yNorm; // posición vertical → volumen
+    volume = normalizeCalibrated(
+      lm.yNorm,
+      persistedSettings.volumeCalibration.silent,
+      persistedSettings.volumeCalibration.loud
+    );
     ui.drawHand("left", left.landmarks, left.palm);
     ui.updateReadout("left", {
       active: true, frequency: 0, volume, yNorm: lm.yNorm, volOnly: true,
@@ -175,19 +252,24 @@ function processClassic(hands, t, dt) {
   if (right) {
     ui.drawHand("right", right.landmarks, right.palm);
     const m = mappers.classic.process(right, t);
-    const rcaPerformance = SOUND_PRESETS[state.soundPreset].voiceProfile === "rca";
+    const voiceProfile = SOUND_PRESETS[state.soundPreset].voiceProfile;
+    const rcaPerformance = voiceProfile === "rca" || voiceProfile === "rockmore";
     const tunedFreq = tuners.classic.apply(
       m.frequency, m.velocity, rcaPerformance ? "free" : state.scale, state.tonicPc, dt
     );
-    voice.setFrequency(tunedFreq);
+    const performedFrequency = state.drone && state.frozenFrequency
+      ? state.frozenFrequency : tunedFreq;
+    voice.setFrequency(performedFrequency);
     // RCA/Rockmore exige la mano de volumen: no se inventa una envolvente con
     // la pinza derecha cuando la izquierda desaparece.
     const amplitude = left ? volume : (rcaPerformance ? 0 : m.volume);
     voice.setAmplitude(amplitude);
     ui.updateReadout("right", {
-      active: true, frequency: tunedFreq,
+      active: true, frequency: performedFrequency,
       volume: amplitude, yNorm: m.yNorm,
     });
+    updateTraining(performedFrequency, t);
+    recordGestureFrame(performedFrequency, amplitude, t);
   } else {
     engine.silence("right");
     mappers.classic.reset();
@@ -197,6 +279,14 @@ function processClassic(hands, t, dt) {
 
 // --- Controles ---------------------------------------------------------------
 function wireControls() {
+  ui.el.stopBtn.addEventListener("click", () => stopApp({ showStart: true }));
+  ui.el.restartBtn.addEventListener("click", restartApp);
+  ui.el.cameraSelect.addEventListener("change", async (event) => {
+    if (!tracking) return;
+    await tracking.switchCamera(event.target.value);
+    persistedSettings.cameraDeviceId = event.target.value;
+    persistCurrentSettings();
+  });
   // Modo Dúo/Clásico.
   ui.el.modeToggle.querySelectorAll(".seg-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -209,24 +299,35 @@ function wireControls() {
       engine.silence("right");
       Object.values(mappers).forEach((m) => m.reset());
       Object.values(tuners).forEach((tn) => tn.reset());
+      persistCurrentSettings();
     });
   });
 
-  ui.el.scaleSelect.addEventListener("change", (e) => { state.scale = e.target.value; });
-  ui.el.tonicSelect.addEventListener("change", (e) => { state.tonicPc = parseInt(e.target.value, 10); });
+  ui.el.scaleSelect.addEventListener("change", (e) => {
+    state.scale = e.target.value; persistCurrentSettings();
+  });
+  ui.el.tonicSelect.addEventListener("change", (e) => {
+    state.tonicPc = parseInt(e.target.value, 10); persistCurrentSettings();
+  });
   ui.el.soundPresetSelect.addEventListener("change", (e) => {
     state.soundPreset = e.target.value;
     const preset = engine.setSoundPreset(state.soundPreset);
+    if (preset.cabinet) {
+      ui.el.cabinetChk.checked = true;
+      persistedSettings.cabinetEnabled = true;
+    } else engine.setCabinetEnabled(ui.el.cabinetChk.checked);
     ui.el.reverbRange.value = String(Math.round(preset.reverb * 100));
     ui.setPresetDescription(preset.description);
-    if (preset.voiceProfile === "rca") {
+    if (preset.voiceProfile === "rca" || preset.voiceProfile === "rockmore") {
       state.scale = "free";
       ui.el.scaleSelect.value = "free";
       Object.values(tuners).forEach((tuner) => tuner.reset());
     }
+    persistCurrentSettings();
   });
   ui.el.reverbRange.addEventListener("input", (e) => {
     engine.setReverbAmount(Number(e.target.value) / 100);
+    persistCurrentSettings();
   });
 
   ui.el.performancePresetSelect.addEventListener("change", (event) => {
@@ -272,6 +373,60 @@ function wireControls() {
   ui.el.pitchGlideRange.addEventListener("input", applyCustomPerformance);
   ui.el.volumeResponseRange.addEventListener("input", applyCustomPerformance);
 
+  ui.el.calibrateBtn.addEventListener("click", startCalibration);
+  ui.el.calibrationCaptureBtn.addEventListener("click", captureCalibrationStep);
+  ui.el.calibrationCancelBtn.addEventListener("click", () => {
+    calibrationStep = -1;
+    ui.el.calibrationDialog.close();
+  });
+  ui.el.trainingChk.addEventListener("change", () => {
+    persistedSettings.trainingEnabled = ui.el.trainingChk.checked;
+    ui.setTraining({ enabled: persistedSettings.trainingEnabled });
+    persistCurrentSettings();
+  });
+  ui.el.resetSettingsBtn.addEventListener("click", () => {
+    resetSettings();
+    window.location.reload();
+  });
+  ui.el.cabinetChk.addEventListener("change", () => {
+    persistedSettings.cabinetEnabled = ui.el.cabinetChk.checked;
+    engine?.setCabinetEnabled(persistedSettings.cabinetEnabled);
+    persistCurrentSettings();
+  });
+  ui.el.cabinetIrInput.addEventListener("change", async () => {
+    const file = ui.el.cabinetIrInput.files?.[0];
+    if (!file || !engine) return;
+    try {
+      const info = await engine.loadCabinetImpulse(await file.arrayBuffer());
+      ui.setPerformanceStatus(`IR cargada: ${info.duration.toFixed(2)} s · ${info.channels} canal(es)`);
+      ui.el.cabinetChk.checked = true;
+      persistedSettings.cabinetEnabled = true;
+      engine.setCabinetEnabled(true);
+    } catch (error) {
+      ui.setPerformanceStatus(`No se pudo cargar la IR: ${error.message}`, true);
+    }
+  });
+
+  const updateCreative = () => engine?.setCreativeMorph(
+    Number(ui.el.creativeX.value) / 100,
+    Number(ui.el.creativeY.value) / 100
+  );
+  ui.el.creativeX.addEventListener("input", updateCreative);
+  ui.el.creativeY.addEventListener("input", updateCreative);
+  ui.el.droneBtn.addEventListener("click", () => {
+    state.drone = !state.drone;
+    if (state.drone) {
+      const last = pitchHistory[pitchHistory.length - 1];
+      state.frozenFrequency = last?.frequency ?? null;
+    } else state.frozenFrequency = null;
+    ui.el.droneBtn.classList.toggle("active", state.drone);
+    ui.el.droneBtn.textContent = state.drone ? "Liberar nota" : "Congelar nota";
+  });
+  ui.el.gestureRecBtn.addEventListener("click", toggleGestureRecording);
+  ui.el.gesturePlayBtn.addEventListener("click", playGestureRecording);
+  ui.el.gestureExportBtn.addEventListener("click", exportGestureRecording);
+  ui.el.gestureImportInput.addEventListener("change", importGestureRecording);
+
   // Grabación.
   ui.el.recBtn.addEventListener("click", toggleRecording);
 }
@@ -298,7 +453,20 @@ function applyPerformanceConfig(showStatus = true) {
     return false;
   }
 
-  mappers.classic.setPitchConfig({ minHz, maxHz, axis });
+  mappers.classic.setPitchConfig({
+    minHz,
+    maxHz,
+    axis,
+    inputLow: persistedSettings.pitch.inputLow,
+    inputHigh: persistedSettings.pitch.inputHigh,
+  });
+  ui.setGuideConfig({
+    axis,
+    pitchLow: persistedSettings.pitch.inputLow,
+    pitchHigh: persistedSettings.pitch.inputHigh,
+    volumeSilent: persistedSettings.volumeCalibration.silent,
+    volumeLoud: persistedSettings.volumeCalibration.loud,
+  });
   if (engine) {
     if (state.mode === "classic") {
       engine.resetControlResponse();
@@ -313,6 +481,7 @@ function applyPerformanceConfig(showStatus = true) {
       `${freqToNoteName(minHz)}–${freqToNoteName(maxHz)} · ${octaves.toFixed(2)} octavas · campo ${direction}`
     );
   } else ui.setPerformanceStatus("");
+  if (showStatus) persistCurrentSettings();
   return true;
 }
 
@@ -327,6 +496,199 @@ function syncOctaveControlFromFrequencies() {
   const sliderOctaves = Math.min(7, Math.max(1, Math.round(octaves * 2) / 2));
   ui.el.octaveSpanRange.value = String(sliderOctaves);
   ui.el.octaveSpanValue.textContent = `${octaves.toFixed(1).replace(".", ",")} oct`;
+}
+
+function persistCurrentSettings() {
+  persistedSettings = {
+    ...persistedSettings,
+    soundPreset: state.soundPreset,
+    performancePreset: state.performancePreset,
+    mode: state.mode,
+    scale: state.scale,
+    tonicPc: state.tonicPc,
+    reverb: Number(ui.el.reverbRange.value) / 100,
+    trainingEnabled: ui.el.trainingChk.checked,
+    cameraDeviceId: ui.el.cameraSelect.value || persistedSettings.cameraDeviceId,
+    cabinetEnabled: ui.el.cabinetChk.checked,
+    pitch: {
+      ...persistedSettings.pitch,
+      minHz: Number(ui.el.pitchMinHz.value),
+      maxHz: Number(ui.el.pitchMaxHz.value),
+      axis: ui.el.pitchAxisSelect.value,
+      glideMs: Number(ui.el.pitchGlideRange.value),
+      volumeResponseMs: Number(ui.el.volumeResponseRange.value),
+    },
+  };
+  saveSettings(persistedSettings);
+}
+
+const CALIBRATION_STEPS = [
+  { hand: "right", key: "pitchLow", text: "Coloca la mano derecha en la posición de la nota más grave." },
+  { hand: "right", key: "pitchHigh", text: "Coloca la mano derecha en la posición de la nota más aguda." },
+  { hand: "left", key: "volumeSilent", text: "Coloca la mano izquierda en silencio, cerca de la antena de volumen." },
+  { hand: "left", key: "volumeLoud", text: "Coloca la mano izquierda en la posición de volumen máximo." },
+];
+let calibrationValues = {};
+
+function startCalibration() {
+  calibrationStep = 0;
+  calibrationValues = {};
+  updateCalibrationDialog();
+  ui.el.calibrationDialog.showModal();
+}
+
+function updateCalibrationDialog() {
+  const step = CALIBRATION_STEPS[calibrationStep];
+  ui.el.calibrationInstruction.textContent = step?.text ?? "Calibración completada.";
+  ui.el.calibrationProgress.textContent = `${calibrationStep + 1} / ${CALIBRATION_STEPS.length}`;
+}
+
+function captureCalibrationStep() {
+  const step = CALIBRATION_STEPS[calibrationStep];
+  const hand = latestHands[step.hand];
+  if (!hand) {
+    ui.el.calibrationProgress.textContent = `No se detecta la mano ${step.hand === "right" ? "derecha" : "izquierda"}.`;
+    return;
+  }
+  if (step.hand === "right") {
+    const raw = ui.el.pitchAxisSelect.value === "x" ? hand.palm.x : hand.palm.y;
+    calibrationValues[step.key] = 1 - raw;
+  } else calibrationValues[step.key] = 1 - hand.palm.y;
+
+  calibrationStep++;
+  if (calibrationStep < CALIBRATION_STEPS.length) {
+    updateCalibrationDialog();
+    return;
+  }
+  if (
+    Math.abs(calibrationValues.pitchHigh - calibrationValues.pitchLow) < 0.08
+    || Math.abs(calibrationValues.volumeLoud - calibrationValues.volumeSilent) < 0.08
+  ) {
+    calibrationStep = 0;
+    ui.el.calibrationProgress.textContent = "Las posiciones están demasiado próximas. Repite con un recorrido mayor.";
+    return;
+  }
+  persistedSettings.pitch.inputLow = calibrationValues.pitchLow;
+  persistedSettings.pitch.inputHigh = calibrationValues.pitchHigh;
+  persistedSettings.volumeCalibration = {
+    silent: calibrationValues.volumeSilent,
+    loud: calibrationValues.volumeLoud,
+  };
+  saveSettings(persistedSettings);
+  applyPerformanceConfig(true);
+  calibrationStep = -1;
+  ui.el.calibrationDialog.close();
+}
+
+function updateTraining(frequency, timestamp) {
+  const enabled = ui.el.trainingChk.checked;
+  if (!enabled || !Number.isFinite(frequency)) {
+    ui.setTraining({ enabled: false });
+    return;
+  }
+  const midi = freqToMidi(frequency);
+  const cents = (midi - Math.round(midi)) * 100;
+  pitchHistory.push({ t: timestamp, cents, frequency });
+  pitchHistory = pitchHistory.filter((point) => timestamp - point.t <= 1.2);
+  const mean = pitchHistory.reduce((sum, point) => sum + point.cents, 0) / pitchHistory.length;
+  const variance = pitchHistory.reduce((sum, point) => sum + (point.cents - mean) ** 2, 0) / pitchHistory.length;
+  let crossings = 0;
+  for (let i = 1; i < pitchHistory.length; i++) {
+    if ((pitchHistory[i - 1].cents - mean) * (pitchHistory[i].cents - mean) < 0) crossings++;
+  }
+  const duration = pitchHistory.length > 1 ? timestamp - pitchHistory[0].t : 0;
+  const vibratoHz = duration > 0.5 && crossings >= 3 ? crossings / (2 * duration) : null;
+  ui.setTraining({
+    enabled: true,
+    cents,
+    stabilityCents: Math.sqrt(variance),
+    vibratoHz,
+  });
+}
+
+function recordGestureFrame(frequency, amplitude, timestamp) {
+  if (!state.gestureRecording) return;
+  const elapsed = timestamp - state.gestureStart;
+  const last = state.gestureEvents[state.gestureEvents.length - 1];
+  if (last && elapsed - last.t < 1 / 30) return;
+  state.gestureEvents.push({
+    t: elapsed,
+    frequency,
+    amplitude,
+    preset: state.soundPreset,
+  });
+}
+
+function toggleGestureRecording() {
+  state.gestureRecording = !state.gestureRecording;
+  if (state.gestureRecording) {
+    state.gestureEvents = [];
+    state.gestureStart = performance.now() / 1000;
+  }
+  ui.el.gestureRecBtn.classList.toggle("active", state.gestureRecording);
+  ui.el.gestureRecBtn.textContent = state.gestureRecording ? "Detener gestos" : "Grabar gestos";
+  ui.el.gesturePlayBtn.disabled = state.gestureRecording || !state.gestureEvents.length;
+  ui.el.gestureExportBtn.disabled = state.gestureRecording || !state.gestureEvents.length;
+}
+
+function playGestureRecording() {
+  if (!engine || !state.gestureEvents.length || state.gesturePlaying) return;
+  state.gesturePlaying = true;
+  engine.silence("left");
+  const voice = engine.getVoice("right");
+  const startedAt = performance.now() / 1000;
+  let index = 0;
+  const tick = () => {
+    if (!state.gesturePlaying) return;
+    const elapsed = performance.now() / 1000 - startedAt;
+    while (index < state.gestureEvents.length && state.gestureEvents[index].t <= elapsed) {
+      const event = state.gestureEvents[index++];
+      if (event.preset !== state.soundPreset) {
+        state.soundPreset = event.preset;
+        engine.setSoundPreset(event.preset);
+      }
+      voice.setFrequency(event.frequency);
+      voice.setAmplitude(event.amplitude);
+    }
+    if (index < state.gestureEvents.length) requestAnimationFrame(tick);
+    else {
+      voice.setAmplitude(0);
+      state.gesturePlaying = false;
+    }
+  };
+  requestAnimationFrame(tick);
+}
+
+function exportGestureRecording() {
+  if (!state.gestureEvents.length) return;
+  const blob = new Blob([JSON.stringify({ version: 1, events: state.gestureEvents }, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "theremin-gestos.json";
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function importGestureRecording() {
+  const file = ui.el.gestureImportInput.files?.[0];
+  if (!file) return;
+  try {
+    const parsed = JSON.parse(await file.text());
+    if (!Array.isArray(parsed.events) || parsed.events.length > 18000) {
+      throw new Error("Formato o duración no válidos");
+    }
+    state.gestureEvents = parsed.events.filter((event) =>
+      Number.isFinite(event.t) && Number.isFinite(event.frequency) && Number.isFinite(event.amplitude)
+    );
+    ui.el.gesturePlayBtn.disabled = !state.gestureEvents.length;
+    ui.el.gestureExportBtn.disabled = !state.gestureEvents.length;
+    ui.setPerformanceStatus(`${state.gestureEvents.length} eventos de gesto importados.`);
+  } catch (error) {
+    ui.setPerformanceStatus(`No se pudo importar: ${error.message}`, true);
+  }
 }
 
 // --- Grabación ---------------------------------------------------------------

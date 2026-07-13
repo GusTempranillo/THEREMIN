@@ -81,12 +81,15 @@ export class ThereminVoice {
     this.ctx = audioCtx;
     this.destination = destination;
     this.maxGain = options.maxGain ?? 0.82;
+    this.useWorklet = Boolean(options.useWorklet);
+    this.workletNode = null;
     this.targetFreq = options.baseFreq ?? 220;
     this.targetAmp = 0;
     this.presetKey = DEFAULT_SOUND_PRESET;
     this.started = false;
     this.vibratoActive = false;
     this.filterEnabled = true;
+    this.creativeMorph = 0;
     this.controlResponse = {
       pitchGlideSeconds: null,
       volumeResponseSeconds: null,
@@ -170,6 +173,22 @@ export class ThereminVoice {
     this.vibratoDepth.gain.value = 0;
     this.lfo.connect(this.vibratoDepth);
 
+    if (this.useWorklet) {
+      this.workletNode = new AudioWorkletNode(this.ctx, "theremin-source", {
+        numberOfInputs: 0,
+        numberOfOutputs: 1,
+        outputChannelCount: [1],
+      });
+      this.workletNode.connect(this.mixGain);
+      this.vibratoDepth.connect(this.workletNode.parameters.get("detune"));
+      this.workletNode.parameters.get("frequency").setValueAtTime(this.targetFreq, now);
+      this.lfo.start(now);
+      this.started = true;
+      this.setPreset(this.presetKey, true);
+      this.setFrequency(this.targetFreq, true);
+      return;
+    }
+
     for (const anchor of RCA_ANCHORS) {
       const oscillator = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
@@ -246,6 +265,13 @@ export class ThereminVoice {
     this.voiceGain.gain.cancelScheduledValues(now);
     this.voiceGain.gain.setTargetAtTime(0, now, 0.025);
     const stopAt = now + 0.3;
+    if (this.workletNode) {
+      try { this.workletNode.disconnect(); } catch (_) { /* ya desconectado */ }
+      try { this.lfo?.stop(stopAt); } catch (_) { /* ya detenido */ }
+      this.workletNode = null;
+      this.started = false;
+      return;
+    }
     for (const { oscillator } of this.rcaSources) {
       try { oscillator.stop(stopAt); } catch (_) { /* ya detenido */ }
     }
@@ -266,15 +292,24 @@ export class ThereminVoice {
     const now = this.ctx.currentTime;
     const timeConstant = immediate ? 0.001 : 0.035;
     this.lfo.frequency.setTargetAtTime(preset.vibratoRateHz ?? 5.5, now, timeConstant);
+    if (this.workletNode) {
+      this.workletNode.port.postMessage({ type: "profile", profile: preset.voiceProfile });
+    } else {
     this.sciFiGain.gain.setTargetAtTime(
-      preset.voiceProfile === "scifi" ? 1 : 0, now, timeConstant
+      (preset.voiceProfile === "scifi" ? 1 : 0) * (1 - this.creativeMorph), now, timeConstant
     );
     this.experimentalProfileGain.gain.setTargetAtTime(
-      preset.voiceProfile === "experimental" ? 1 : 0, now, timeConstant
+      preset.voiceProfile === "experimental" ? 1 : this.creativeMorph, now, timeConstant
     );
+    }
 
-    this.formantLow.gain.setTargetAtTime(preset.voiceProfile === "rca" ? 1.8 : 0.6, now, 0.04);
-    this.formantHigh.gain.setTargetAtTime(preset.voiceProfile === "rca" ? 1.1 : 2.1, now, 0.04);
+    const historical = preset.voiceProfile === "rca" || preset.voiceProfile === "rockmore";
+    this.formantLow.gain.setTargetAtTime(
+      preset.voiceProfile === "rockmore" ? 2.5 : (historical ? 1.8 : 0.6), now, 0.04
+    );
+    this.formantHigh.gain.setTargetAtTime(
+      preset.voiceProfile === "rockmore" ? 1.7 : (historical ? 1.1 : 2.1), now, 0.04
+    );
     this._updateRcaWeights(this.targetFreq, immediate);
     this._updateFilter(this.targetFreq, immediate);
     this._updateVibrato(true);
@@ -289,6 +324,11 @@ export class ThereminVoice {
     const glide = immediate
       ? 0.001
       : (this.controlResponse.pitchGlideSeconds ?? preset.glideTimeConstant);
+    if (this.workletNode) {
+      this.workletNode.parameters.get("frequency").setTargetAtTime(hz, now, glide);
+      this._updateFilter(hz, immediate);
+      return;
+    }
     for (const { oscillator } of this.rcaSources) {
       oscillator.frequency.setTargetAtTime(hz, now, glide);
     }
@@ -302,8 +342,9 @@ export class ThereminVoice {
 
   _updateRcaWeights(hz, immediate = false) {
     if (!this.started) return;
+    if (this.workletNode) return;
     const preset = SOUND_PRESETS[this.presetKey];
-    const active = preset.voiceProfile === "rca";
+    const active = preset.voiceProfile === "rca" || preset.voiceProfile === "rockmore";
     const now = this.ctx.currentTime;
     const smooth = immediate ? 0.001 : 0.018;
     const logHz = Math.log2(hz);
@@ -318,8 +359,8 @@ export class ThereminVoice {
 
     for (let i = 0; i < this.rcaSources.length; i++) {
       let target = 0;
-      if (active && i === lower) target = Math.cos(mix * Math.PI * 0.5);
-      if (active && i === lower + 1) target = Math.sin(mix * Math.PI * 0.5);
+      if (active && i === lower) target = Math.cos(mix * Math.PI * 0.5) * (1 - this.creativeMorph);
+      if (active && i === lower + 1) target = Math.sin(mix * Math.PI * 0.5) * (1 - this.creativeMorph);
       this.rcaSources[i].gain.gain.setTargetAtTime(target, now, smooth);
     }
   }
@@ -332,6 +373,10 @@ export class ThereminVoice {
     if (!this.filterEnabled) cutoff = 20000;
     else if (preset.voiceProfile === "scifi") cutoff = 9200;
     else if (preset.voiceProfile === "experimental") cutoff = 7200;
+    else if (preset.voiceProfile === "rockmore") {
+      const octavesAboveC2 = Math.max(0, Math.log2(hz / 65.41));
+      cutoff = Math.max(2450, 5100 - octavesAboveC2 * 690);
+    }
     else {
       const octavesAboveC2 = Math.max(0, Math.log2(hz / 65.41));
       cutoff = Math.max(2700, 5600 - octavesAboveC2 * 650);
@@ -343,9 +388,13 @@ export class ThereminVoice {
     this.targetAmp = clamp01(Number(value) || 0);
     if (!this.started) return;
     const preset = SOUND_PRESETS[this.presetKey];
+    if (this.workletNode) {
+      this.workletNode.parameters.get("timbreAmplitude")
+        .setTargetAtTime(this.targetAmp, this.ctx.currentTime, 0.025);
+    }
     let gain;
     if (this.targetAmp < 0.003) gain = 0;
-    else if (preset.voiceProfile === "rca") {
+    else if (preset.voiceProfile === "rca" || preset.voiceProfile === "rockmore") {
       const decibels = -48 * (1 - Math.sqrt(this.targetAmp));
       gain = Math.pow(10, decibels / 20);
     } else gain = Math.pow(this.targetAmp, 1.12);
@@ -396,6 +445,13 @@ export class ThereminVoice {
   resetControlResponse() {
     this.controlResponse.pitchGlideSeconds = null;
     this.controlResponse.volumeResponseSeconds = null;
+  }
+
+  setCreativeMorph(value) {
+    this.creativeMorph = Math.min(1, Math.max(0, Number(value) || 0));
+    if (this.workletNode) {
+      this.workletNode.port.postMessage({ type: "creativeMorph", value: this.creativeMorph });
+    } else if (this.started) this.setPreset(this.presetKey, false);
   }
 
   // Compatibilidad con controles antiguos; los presets gobiernan la fuente.

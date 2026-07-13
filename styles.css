@@ -93,6 +93,16 @@ html, body {
 }
 .brand { font-size: 1.4rem; margin: 0; letter-spacing: -0.01em; }
 .privacy-inline { color: var(--muted); font-size: 0.8rem; margin: 0; }
+.diagnostics { color: var(--muted); font-size: 0.74rem; font-variant-numeric: tabular-nums; }
+.session-controls, .config-actions, .creative-actions {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+}
+.session-controls { margin-left: auto; }
+.session-controls button, .config-actions button, .creative-actions button,
+.calibration-dialog button {
+  background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+  border-radius: 9px; padding: 8px 12px; cursor: pointer;
+}
 
 .stage {
   display: grid;
@@ -208,6 +218,9 @@ select {
 .config-description { margin: 14px 0 0; }
 .config-status { min-height: 1.2em; margin: 4px 0 0; color: var(--accent); }
 .config-status.error { color: var(--danger); }
+.config-actions { margin-top: 12px; }
+.ir-upload { color: var(--muted); font-size: 0.78rem; cursor: pointer; }
+.ir-upload input { display: block; max-width: 190px; margin-top: 4px; }
 .config-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(170px, 1fr));
@@ -257,6 +270,28 @@ select {
   cursor: pointer;
 }
 .octave-stepper button:hover { border-color: var(--accent); }
+
+.training-panel, .creative-tools {
+  margin-top: 14px; padding: 14px 18px; background: var(--panel);
+  border: 1px solid var(--border); border-radius: var(--radius);
+}
+.training-panel { display: flex; gap: 18px; flex-wrap: wrap; color: var(--muted); }
+.training-panel strong { color: var(--accent); }
+.creative-tools { display: grid; grid-template-columns: 1fr 1.2fr; gap: 14px 20px; align-items: center; }
+.creative-tools h3 { margin: 0 0 4px; }
+.creative-tools p { margin: 0; color: var(--muted); font-size: 0.8rem; }
+.xy-controls { display: grid; gap: 8px; }
+.xy-controls label { display: grid; grid-template-columns: 90px 1fr; gap: 8px; font-size: 0.78rem; color: var(--muted); }
+.creative-actions { grid-column: 1 / -1; }
+.creative-actions button.active { border-color: var(--accent); color: var(--accent); }
+.gesture-import { color: var(--muted); font-size: 0.78rem; }
+.gesture-import input { display: block; max-width: 180px; }
+.calibration-dialog {
+  max-width: 480px; color: var(--text); background: var(--panel);
+  border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.calibration-dialog::backdrop { background: rgba(0, 0, 0, 0.72); }
+@media (max-width: 760px) { .creative-tools { grid-template-columns: 1fr; } }
 @media (max-width: 760px) {
   .config-grid { grid-template-columns: 1fr; }
   .config-wide { grid-column: auto; }

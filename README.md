@@ -15,6 +15,10 @@ buscando un timbre cálido y expresivo cercano a un theremin analógico.
 - 🎙️ **Grabación SOLO audio** (WebM/Opus + descarga opcional en WAV).
 - 🌌 **Hall amortiguada, eco y limitador de último recurso** con headroom.
 - 🌑 Interfaz minimalista en modo oscuro.
+- 🎛️ **Calibración por intérprete**, cámaras intercambiables y preferencias
+  persistentes exclusivamente en `localStorage`.
+- 🧪 **Entrenamiento y laboratorio creativo:** cents, estabilidad, vibrato,
+  morph XY, drone y grabación/reproducción de gestos.
 
 ## Cómo funciona (controles)
 
@@ -111,7 +115,9 @@ cámara. Verás el vídeo espejado con el overlay de landmarks y oirás las voce
     ├── mapping.js       # landmarks → frecuencia (log) y volumen (pinza)
     ├── scale.js         # escalas + afinación "afina al parar"
     ├── thereminVoice.js # wavetables por registro, vibrato y VCA
+    ├── theremin-worklet.js # fuente aditiva AudioWorklet band-limited
     ├── audioEngine.js   # mezcla, Cabinet 1929, hall, eco y salida
+    ├── settings.js      # preferencias y calibración local
     ├── recorder.js      # grabación de audio + export WAV
     └── ui.js            # overlay, lecturas, barras, controles
 ```
@@ -128,8 +134,35 @@ motor DSP y la robustez de tracking de la primera versión:
 - seis wavetables RCA/Rockmore con crossfade equal-power por registro;
 - fuente Sci-Fi band-limited y saturación asimétrica sobremuestreada;
 - Cabinet 1929 modelado como etapa de salida independiente;
+- carga opcional de una IR de cabinet medida por el usuario;
 - vibrato en cents, filtros formantes, hall, eco y limitador de seguridad;
 - modo Dúo, modo Clásico, escalas, afinación suave y grabación sólo de audio.
+
+## Calibración y sesión
+
+El asistente captura grave/agudo con la mano derecha y silencio/forte con la
+izquierda. Los límites espaciales se guardan localmente. La cabecera permite
+cambiar de cámara, detener y reiniciar liberando stream, landmarker,
+osciladores, grabador y `AudioContext`. La asociación temporal de palmas reduce
+el intercambio de roles cuando las manos se cruzan.
+
+## Herramientas creativas y pedagógicas
+
+- Entrenamiento: desviación en cents, estabilidad y frecuencia de vibrato.
+- Laboratorio XY: morph continuo hacia Órbita prismática y apertura de espacio.
+- Drone: congela la frecuencia conservando la articulación de volumen.
+- Gestos: captura pitch/volumen/preset a 30 Hz, reproduce y exporta JSON.
+- Cabinet: toggle independiente y carga de archivos IR de audio.
+
+## Verificación
+
+```bash
+npm run check
+npm test
+```
+
+El `AudioWorklet` es la ruta preferida; si el navegador no puede cargarlo, el
+motor vuelve automáticamente al banco de `OscillatorNode`.
 
 La configuración local de Claude está excluida mediante `.gitignore` y no debe
 subirse al repositorio.

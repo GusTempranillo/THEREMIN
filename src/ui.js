@@ -31,6 +31,10 @@ export class UI {
       startBtn: document.getElementById("startBtn"),
       startStatus: document.getElementById("startStatus"),
       app: document.getElementById("app"),
+      diagnostics: document.getElementById("diagnostics"),
+      cameraSelect: document.getElementById("cameraSelect"),
+      restartBtn: document.getElementById("restartBtn"),
+      stopBtn: document.getElementById("stopBtn"),
       modeToggle: document.getElementById("modeToggle"),
       scaleSelect: document.getElementById("scaleSelect"),
       tonicSelect: document.getElementById("tonicSelect"),
@@ -51,6 +55,27 @@ export class UI {
       volumeResponseValue: document.getElementById("volumeResponseValue"),
       performanceDescription: document.getElementById("performanceDescription"),
       performanceStatus: document.getElementById("performanceStatus"),
+      calibrateBtn: document.getElementById("calibrateBtn"),
+      trainingChk: document.getElementById("trainingChk"),
+      resetSettingsBtn: document.getElementById("resetSettingsBtn"),
+      cabinetChk: document.getElementById("cabinetChk"),
+      cabinetIrInput: document.getElementById("cabinetIrInput"),
+      trainingPanel: document.getElementById("trainingPanel"),
+      trainingCents: document.getElementById("trainingCents"),
+      trainingStability: document.getElementById("trainingStability"),
+      trainingVibrato: document.getElementById("trainingVibrato"),
+      creativeX: document.getElementById("creativeX"),
+      creativeY: document.getElementById("creativeY"),
+      droneBtn: document.getElementById("droneBtn"),
+      gestureRecBtn: document.getElementById("gestureRecBtn"),
+      gesturePlayBtn: document.getElementById("gesturePlayBtn"),
+      gestureExportBtn: document.getElementById("gestureExportBtn"),
+      gestureImportInput: document.getElementById("gestureImportInput"),
+      calibrationDialog: document.getElementById("calibrationDialog"),
+      calibrationInstruction: document.getElementById("calibrationInstruction"),
+      calibrationProgress: document.getElementById("calibrationProgress"),
+      calibrationCaptureBtn: document.getElementById("calibrationCaptureBtn"),
+      calibrationCancelBtn: document.getElementById("calibrationCancelBtn"),
       recBtn: document.getElementById("recBtn"),
       recTimer: document.getElementById("recTimer"),
       recStatus: document.getElementById("recStatus"),
@@ -76,6 +101,7 @@ export class UI {
     }
 
     this._populateTonics();
+    this.guideConfig = null;
   }
 
   _populateTonics() {
@@ -132,9 +158,65 @@ export class UI {
     this.el.performanceStatus.classList.toggle("error", isError);
   }
 
+  setCameras(cameras, selectedId = "") {
+    this.el.cameraSelect.textContent = "";
+    cameras.forEach((camera) => {
+      const option = document.createElement("option");
+      option.value = camera.deviceId;
+      option.textContent = camera.label;
+      option.selected = camera.deviceId === selectedId;
+      this.el.cameraSelect.appendChild(option);
+    });
+  }
+
+  setTraining({ enabled, cents = 0, stabilityCents = null, vibratoHz = null }) {
+    this.el.trainingPanel.classList.toggle("hidden", !enabled);
+    if (!enabled) return;
+    this.el.trainingCents.textContent = `${cents >= 0 ? "+" : ""}${cents.toFixed(0)} ¢`;
+    this.el.trainingStability.textContent = stabilityCents == null
+      ? "estabilidad —"
+      : `estabilidad ±${stabilityCents.toFixed(1)} ¢`;
+    this.el.trainingVibrato.textContent = vibratoHz == null
+      ? "vibrato —"
+      : `vibrato ${vibratoHz.toFixed(1)} Hz`;
+  }
+
+  setDiagnostics(fps, latencySeconds) {
+    const latencyMs = Number.isFinite(latencySeconds) && latencySeconds > 0
+      ? `${Math.round(latencySeconds * 1000)} ms` : "—";
+    this.el.diagnostics.textContent = `FPS ${fps ? fps.toFixed(0) : "—"} · latencia ${latencyMs}`;
+  }
+
   // --- Dibujo del overlay ----------------------------------------------------
   clearOverlay() {
     this.cctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+
+  setGuideConfig(config) { this.guideConfig = config; }
+
+  drawGuides(mode) {
+    if (mode !== "classic" || !this.guideConfig) return;
+    const ctx = this.cctx, W = this.canvas.width, H = this.canvas.height;
+    const { axis, pitchLow, pitchHigh, volumeSilent, volumeLoud } = this.guideConfig;
+    ctx.save();
+    ctx.setLineDash([8, 7]);
+    ctx.lineWidth = 2;
+    if (axis === "x") {
+      for (const [value, color] of [[pitchLow, "#7aa2ff"], [pitchHigh, "#ff8db4"]]) {
+        const x = (1 - value) * W;
+        ctx.strokeStyle = color; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+      }
+    } else {
+      for (const [value, color] of [[pitchLow, "#7aa2ff"], [pitchHigh, "#ff8db4"]]) {
+        const y = (1 - value) * H;
+        ctx.strokeStyle = color; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+      }
+    }
+    for (const [value, color] of [[volumeSilent, "#ff5a6a"], [volumeLoud, "#5ee6c5"]]) {
+      const y = (1 - value) * H;
+      ctx.strokeStyle = color; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W * 0.34, y); ctx.stroke();
+    }
+    ctx.restore();
   }
 
   drawHand(side, landmarks, palm) {

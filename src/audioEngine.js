@@ -59,6 +59,12 @@ export class AudioEngine {
     this.cabinetCompression.attack.value = 0.018;
     this.cabinetCompression.release.value = 0.095;
 
+    this.cabinetModelGain = this.ctx.createGain();
+    this.cabinetModelGain.gain.value = 1;
+    this.cabinetIR = this.ctx.createConvolver();
+    this.cabinetIRGain = this.ctx.createGain();
+    this.cabinetIRGain.gain.value = 0;
+
     this.cabinetGain = this.ctx.createGain();
     this.cabinetGain.gain.value = 0;
     this.sumBus
@@ -67,9 +73,10 @@ export class AudioEngine {
       .connect(this.cabinetVoice)
       .connect(this.cabinetLowpass)
       .connect(this.cabinetDrive)
-      .connect(this.cabinetCompression)
-      .connect(this.cabinetGain)
-      .connect(this.effectsBus);
+      .connect(this.cabinetCompression);
+    this.cabinetCompression.connect(this.cabinetModelGain).connect(this.cabinetGain);
+    this.cabinetCompression.connect(this.cabinetIR).connect(this.cabinetIRGain).connect(this.cabinetGain);
+    this.cabinetGain.connect(this.effectsBus);
 
     // Señal seca.
     this.dryGain = this.ctx.createGain();
@@ -135,15 +142,26 @@ export class AudioEngine {
     if (this.ctx.state !== "running") await this.ctx.resume();
   }
 
-  setupVoices() {
+  async setupVoices() {
     if (this.voices.left || this.voices.right) return;
+    let useWorklet = false;
+    if (this.ctx.audioWorklet && typeof AudioWorkletNode !== "undefined") {
+      try {
+        await this.ctx.audioWorklet.addModule(new URL("./theremin-worklet.js", import.meta.url));
+        useWorklet = true;
+      } catch (error) {
+        console.warn("AudioWorklet no disponible; usando osciladores nativos.", error);
+      }
+    }
     this.voices.left = new ThereminVoice(this.ctx, this.sumBus, {
       baseFreq: 65.41,
       maxGain: 0.72,
+      useWorklet,
     });
     this.voices.right = new ThereminVoice(this.ctx, this.sumBus, {
       baseFreq: 261.63,
       maxGain: 0.72,
+      useWorklet,
     });
     this.voices.left.start();
     this.voices.right.start();
@@ -159,6 +177,13 @@ export class AudioEngine {
     this.voices[side]?.setAmplitude(0);
   }
 
+  async close() {
+    this.voices.left?.stop();
+    this.voices.right?.stop();
+    this.voices = { left: null, right: null };
+    if (this.ctx.state !== "closed") await this.ctx.close();
+  }
+
   setSoundPreset(presetKey, immediate = false) {
     const key = SOUND_PRESETS[presetKey] ? presetKey : DEFAULT_SOUND_PRESET;
     const preset = SOUND_PRESETS[key];
@@ -168,8 +193,7 @@ export class AudioEngine {
 
     const now = this.ctx.currentTime;
     const smooth = immediate ? 0.001 : 0.055;
-    this.directToneGain.gain.setTargetAtTime(preset.cabinet ? 0 : 1, now, smooth);
-    this.cabinetGain.gain.setTargetAtTime(preset.cabinet ? 0.92 : 0, now, smooth);
+    this.setCabinetEnabled(preset.cabinet, immediate);
     const preDelay = preset.preDelay ?? (key === "scifi" ? 0.026 : 0.009);
     const echoTime = preset.echoTime ?? (key === "scifi" ? 0.158 : 0.13);
     const echoFeedback = preset.echoFeedback ?? 0.17;
@@ -191,9 +215,35 @@ export class AudioEngine {
     this.dryGain.gain.setTargetAtTime(1 - wet * 0.22, now, 0.05);
   }
 
+  setCabinetEnabled(enabled, immediate = false) {
+    const now = this.ctx.currentTime;
+    const smooth = immediate ? 0.001 : 0.055;
+    this.directToneGain.gain.setTargetAtTime(enabled ? 0 : 1, now, smooth);
+    this.cabinetGain.gain.setTargetAtTime(enabled ? 0.92 : 0, now, smooth);
+  }
+
+  async loadCabinetImpulse(arrayBuffer) {
+    const buffer = await this.ctx.decodeAudioData(arrayBuffer.slice(0));
+    this.cabinetIR.buffer = buffer;
+    const now = this.ctx.currentTime;
+    this.cabinetModelGain.gain.setTargetAtTime(0, now, 0.08);
+    this.cabinetIRGain.gain.setTargetAtTime(1, now, 0.08);
+    return { duration: buffer.duration, channels: buffer.numberOfChannels };
+  }
+
   setDelayAmount(value) {
     const amount = Math.min(0.4, Math.max(0, Number(value) || 0));
     this.echoWet.gain.setTargetAtTime(amount, this.ctx.currentTime, 0.05);
+  }
+
+  setCreativeMorph(character, space) {
+    const x = Math.min(1, Math.max(0, Number(character) || 0));
+    const y = Math.min(1, Math.max(0, Number(space) || 0));
+    this.voices.left?.setCreativeMorph(x);
+    this.voices.right?.setCreativeMorph(x);
+    const preset = SOUND_PRESETS[this.currentPreset];
+    this.setReverbAmount(Math.min(0.72, preset.reverb + y * 0.42));
+    this.setDelayAmount(Math.min(0.34, preset.delay + y * 0.18));
   }
 
   setFilterEnabled(enabled) {

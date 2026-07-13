@@ -25,6 +25,8 @@ export class HandMapper {
     this.minFrequency = this.range.fBase;
     this.maxFrequency = this.range.fBase * Math.pow(2, this.range.octaves);
     this.pitchAxis = "y";
+    this.inputLow = 0;
+    this.inputHigh = 1;
     this.yFilter = new OneEuroFilter(ONE_EURO.position);
     this.apertureFilter = new OneEuroFilter(ONE_EURO.aperture);
     this.velFilter = new OneEuroFilter({ minCutoff: 2.5, beta: 0.0, dCutoff: 1.0 });
@@ -43,13 +45,23 @@ export class HandMapper {
   // Configura en caliente la extensión y el eje usados por el tono. En vídeo
   // espejado, x cruda pequeña aparece junto a la antena derecha; 1-x conserva
   // la convención histórica "más cerca = más agudo".
-  setPitchConfig({ minHz, maxHz, axis = this.pitchAxis }) {
+  setPitchConfig({
+    minHz,
+    maxHz,
+    axis = this.pitchAxis,
+    inputLow = this.inputLow,
+    inputHigh = this.inputHigh,
+  }) {
     if (!Number.isFinite(minHz) || !Number.isFinite(maxHz) || minHz <= 0 || maxHz <= minHz) {
       throw new RangeError("El rango de tono debe cumplir 0 < mínimo < máximo.");
     }
     this.minFrequency = minHz;
     this.maxFrequency = maxHz;
     this.pitchAxis = axis === "x" ? "x" : "y";
+    this.inputLow = Number.isFinite(inputLow) ? inputLow : 0;
+    this.inputHigh = Number.isFinite(inputHigh) && Math.abs(inputHigh - this.inputLow) > 1e-4
+      ? inputHigh
+      : 1;
     this.reset();
   }
 
@@ -59,7 +71,10 @@ export class HandMapper {
     // --- Tono: posición de la palma en el eje seleccionado ------------------
     const positionRaw = this.pitchAxis === "x" ? hand.palm.x : hand.palm.y;
     const positionFiltered = this.yFilter.filter(positionRaw, tSeconds);
-    const pitchNorm = clamp01(1 - positionFiltered);
+    const pitchCoordinate = 1 - positionFiltered;
+    const pitchNorm = clamp01(
+      (pitchCoordinate - this.inputLow) / (this.inputHigh - this.inputLow)
+    );
     const frequency = this.minFrequency
       * Math.pow(this.maxFrequency / this.minFrequency, pitchNorm);
 

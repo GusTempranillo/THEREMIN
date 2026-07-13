@@ -39,6 +39,16 @@ El siguiente modelo debe revisar primero el código real de `src/` y conservar l
   recalcula el límite agudo.
 - Los overrides de respuesta sólo se aplican a la voz derecha en modo Clásico;
   al volver a Dúo, ambas voces recuperan los tiempos propios del preset sonoro.
+- AudioWorklet aditivo como fuente preferida, con fallback automático al motor
+  nativo existente.
+- RCA y Rockmore son perfiles separados; Cabinet es independiente y acepta una
+  IR externa mediante `decodeAudioData`.
+- Calibración de cuatro poses, preferencias locales, selector de cámara,
+  detener/reiniciar con liberación de recursos y asociación temporal de manos.
+- Entrenamiento de cents/estabilidad/vibrato, laboratorio XY, drone y captura
+  de gestos exportable a JSON.
+- `npm test` cubre rangos, calibración y cruce de manos; `npm run check` valida
+  la sintaxis de todos los módulos.
 
 ## Estructura
 

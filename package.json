@@ -1,0 +1,9 @@
+{
+  "name": "theremin-web-3",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "test": "node --test tests/*.test.mjs"
+  }
+}

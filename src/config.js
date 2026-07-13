@@ -112,6 +112,17 @@ export const SOUND_PRESETS = {
     reverb: 0.04,
     delay: 0,
   },
+  rockmore: {
+    label: "Rockmore Concert",
+    description: "Más vocal y dulce, con articulación rápida y agudos suavizados.",
+    voiceProfile: "rockmore",
+    cabinet: false,
+    automaticVibrato: false,
+    glideTimeConstant: 0.010,
+    gainTimeConstant: 0.018,
+    reverb: 0.06,
+    delay: 0,
+  },
   cabinet1929: {
     label: "RCA + Cabinet 1929",
     description: "Voz RCA a través de amplificador, altavoz y caja modelados.",
