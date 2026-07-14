@@ -850,5 +850,5 @@ async function stopRecording() {
   } catch (err) {
     console.warn("No se pudo generar WAV:", err);
   }
-  ui.showRecResult({ webmUrl, wavUrl, webmBlob, wavBlob });
+  ui.showRecResult({ webmUrl, wavUrl });
 }

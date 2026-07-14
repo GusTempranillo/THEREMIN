@@ -222,9 +222,11 @@ select {
 .ir-upload { color: var(--muted); font-size: 0.78rem; cursor: pointer; }
 .ir-upload input { display: block; max-width: 190px; margin-top: 4px; }
 .documentation-launcher {
-  margin-top: 20px;
-  padding-top: 18px;
-  border-top: 1px solid var(--border);
+  margin-top: 14px;
+  padding: 18px;
+  background: rgba(26, 31, 46, 0.82);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
 }
 .documentation-heading {
   display: flex;
@@ -392,7 +394,8 @@ select {
 
 /* --- Resultado de grabación ------------------------------------------------ */
 .rec-result {
-  margin-top: 18px; padding: 16px 18px; background: var(--panel);
+  width: min(540px, 100%);
+  margin-top: 6px; padding: 12px 14px; background: var(--panel-2);
   border: 1px solid var(--border); border-radius: var(--radius);
   display: flex; flex-wrap: wrap; align-items: center; gap: 16px;
 }

@@ -80,9 +80,7 @@ export class UI {
       recStatus: document.getElementById("recStatus"),
       recResult: document.getElementById("recResult"),
       recPlayer: document.getElementById("recPlayer"),
-      dlWebm: document.getElementById("dlWebm"),
       dlWav: document.getElementById("dlWav"),
-      shareBtn: document.getElementById("shareBtn"),
     };
 
     // Lecturas por lado (cacheadas).
@@ -297,27 +295,14 @@ export class UI {
     this.el.recBtn.disabled = true;
   }
 
-  showRecResult({ webmUrl, wavUrl, webmBlob, wavBlob }) {
+  showRecResult({ webmUrl, wavUrl }) {
     this.el.recResult.classList.remove("hidden");
     this.el.recPlayer.src = webmUrl;
-    this.el.dlWebm.href = webmUrl;
     if (wavUrl) {
       this.el.dlWav.href = wavUrl;
       this.el.dlWav.classList.remove("hidden");
     } else {
       this.el.dlWav.classList.add("hidden");
-    }
-
-    // Web Share API (móvil): comparte el archivo si está disponible.
-    const file = wavBlob
-      ? new File([wavBlob], "theremin.wav", { type: "audio/wav" })
-      : new File([webmBlob], "theremin.webm", { type: webmBlob.type });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      this.el.shareBtn.classList.remove("hidden");
-      this.el.shareBtn.onclick = () =>
-        navigator.share({ files: [file], title: "Mi theremin" }).catch(() => {});
-    } else {
-      this.el.shareBtn.classList.add("hidden");
     }
   }
 }
