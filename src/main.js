@@ -90,6 +90,7 @@ for (const [id, value] of [
   ["volumeResponseRange", persistedSettings.pitch.volumeResponseMs],
 ]) ui.el[id].value = String(value);
 applyPerformanceConfig(false);
+updateContextualUi();
 
 let lastFrameT = null;
 let recTimerId = null;
@@ -102,16 +103,19 @@ async function onStart() {
   ui.el.startBtn.disabled = true;
   try {
     ui.setStartStatus("Iniciando audio…");
+    ui.setSessionStatus("Iniciando audio…");
     engine = new AudioEngine();
     await engine.resume();
     await engine.setupVoices();
     applyPerformanceConfig(false);
 
     ui.setStartStatus("Cargando modelo de manos…");
+    ui.setSessionStatus("Cargando seguimiento…");
     tracking = new HandTracking(ui.video);
     await tracking.init();
 
     ui.setStartStatus("Pidiendo cámara…");
+    ui.setSessionStatus("Solicitando cámara…");
     await tracking.startCamera(persistedSettings.cameraDeviceId);
     const cameras = await tracking.listCameras();
     const activeDevice = tracking.stream?.getVideoTracks()?.[0]?.getSettings()?.deviceId ?? "";
@@ -138,6 +142,7 @@ async function onStart() {
     state.started = true;
     startTrackingWatchdog();
     ui.showApp();
+    ui.setSessionStatus("Cámara y audio listos");
     if (!controlsWired) { wireControls(); controlsWired = true; }
     window.addEventListener("resize", () => ui.resizeCanvas());
   } catch (err) {
@@ -148,6 +153,7 @@ async function onStart() {
         : `Error al iniciar: ${err?.message ?? err}`,
       true
     );
+    ui.setSessionStatus("No se pudo iniciar la sesión", true);
     ui.el.startBtn.disabled = false;
   }
 }
@@ -177,6 +183,7 @@ async function stopApp({ showStart = false } = {}) {
     ui.el.app.classList.add("hidden");
     ui.el.startScreen.classList.remove("hidden");
   }
+  ui.setSessionStatus("Sesión detenida");
   ui.el.startBtn.disabled = false;
 }
 
@@ -395,6 +402,7 @@ function wireControls() {
       ui.el.modeToggle.querySelectorAll(".seg-btn").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       state.mode = btn.dataset.mode;
+      updateContextualUi();
       applyPerformanceConfig(false);
       // Silencia todo al cambiar de modo para evitar voces colgadas.
       engine.silence("left");
@@ -599,6 +607,7 @@ function syncOctaveControlFromFrequencies() {
 }
 
 function persistCurrentSettings() {
+  updateContextualUi();
   persistedSettings = {
     ...persistedSettings,
     soundPreset: state.soundPreset,
@@ -619,6 +628,21 @@ function persistCurrentSettings() {
     },
   };
   saveSettings(persistedSettings);
+}
+
+function updateContextualUi() {
+  const modeLabel = state.mode === "classic" ? "Clásico" : "Dúo";
+  const soundLabel = {
+    rca: "RCA", rockmore: "Rockmore", cabinet1929: "RCA Cabinet",
+    scifi: "Ciencia ficción", experimental: "Órbita",
+  }[state.soundPreset] ?? "Sonido";
+  const performanceLabel = {
+    concertFull: "Do1–Do7", rca1929: "RCA 1929", rockmore: "Do2–Do7",
+    comfortable: "Webcam cómoda", custom: "Personalizado",
+  }[state.performancePreset] ?? "Perfil";
+  const scaleLabel = ui.el.scaleSelect.options[ui.el.scaleSelect.selectedIndex]?.textContent ?? "Libre";
+  ui.setPerformanceSummary(`${modeLabel} · ${soundLabel} · ${performanceLabel} · ${scaleLabel}`);
+  ui.setTechniqueHelp(state.mode);
 }
 
 const CALIBRATION_STEPS = [
@@ -838,6 +862,7 @@ function startRecording() {
 
 async function stopRecording() {
   clearInterval(recTimerId);
+  const durationSeconds = recorder.elapsedSeconds();
   const webmBlob = await recorder.stop();
   ui.setRecording(false);
   if (!webmBlob) return;
@@ -850,5 +875,5 @@ async function stopRecording() {
   } catch (err) {
     console.warn("No se pudo generar WAV:", err);
   }
-  ui.showRecResult({ webmUrl, wavUrl });
+  ui.showRecResult({ webmUrl, wavUrl, durationSeconds });
 }

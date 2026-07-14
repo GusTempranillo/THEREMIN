@@ -32,6 +32,7 @@ export class UI {
       startStatus: document.getElementById("startStatus"),
       app: document.getElementById("app"),
       diagnostics: document.getElementById("diagnostics"),
+      sessionStatus: document.getElementById("sessionStatus"),
       cameraSelect: document.getElementById("cameraSelect"),
       restartBtn: document.getElementById("restartBtn"),
       stopBtn: document.getElementById("stopBtn"),
@@ -54,6 +55,7 @@ export class UI {
       volumeResponseValue: document.getElementById("volumeResponseValue"),
       performanceDescription: document.getElementById("performanceDescription"),
       performanceStatus: document.getElementById("performanceStatus"),
+      performanceSummary: document.getElementById("performanceSummary"),
       calibrateBtn: document.getElementById("calibrateBtn"),
       trainingChk: document.getElementById("trainingChk"),
       resetSettingsBtn: document.getElementById("resetSettingsBtn"),
@@ -76,6 +78,8 @@ export class UI {
       calibrationCaptureBtn: document.getElementById("calibrationCaptureBtn"),
       calibrationCancelBtn: document.getElementById("calibrationCancelBtn"),
       recBtn: document.getElementById("recBtn"),
+      recIcon: document.getElementById("recIcon"),
+      recLabel: document.getElementById("recLabel"),
       recTimer: document.getElementById("recTimer"),
       recStatus: document.getElementById("recStatus"),
       recResult: document.getElementById("recResult"),
@@ -132,6 +136,21 @@ export class UI {
     this.el.startStatus.textContent = text;
     this.el.startStatus.classList.toggle("error", isError);
   }
+
+  setSessionStatus(text, isError = false) {
+    this.el.sessionStatus.textContent = text;
+    this.el.sessionStatus.classList.toggle("error", isError);
+  }
+
+  setTechniqueHelp(mode) {
+    const classic = mode === "classic";
+    document.getElementById("techniqueHelpTitle").textContent = classic ? "Modo Clásico" : "Modo Dúo";
+    document.getElementById("techniqueHelpText").textContent = classic
+      ? "Mano derecha: tono vertical. Mano izquierda: volumen mediante la pinza."
+      : "Cada mano controla una voz; la pinza de cada una regula su volumen.";
+  }
+
+  setPerformanceSummary(text) { this.el.performanceSummary.textContent = text || ""; }
 
   setPresetDescription(text) {
     this.el.presetDescription.textContent = text || "";
@@ -279,7 +298,8 @@ export class UI {
   // --- Grabación -------------------------------------------------------------
   setRecording(isRec) {
     this.el.recBtn.classList.toggle("recording", isRec);
-    this.el.recBtn.textContent = isRec ? "■" : "●";
+    this.el.recIcon.textContent = isRec ? "■" : "●";
+    this.el.recLabel.textContent = isRec ? "Detener" : "Grabar";
     this.el.recStatus.textContent = isRec ? "Grabando…" : "";
   }
 
@@ -295,14 +315,21 @@ export class UI {
     this.el.recBtn.disabled = true;
   }
 
-  showRecResult({ webmUrl, wavUrl }) {
+  showRecResult({ webmUrl, wavUrl, durationSeconds }) {
     this.el.recResult.classList.remove("hidden");
     this.el.recPlayer.src = webmUrl;
+    this.el.recStatus.textContent = `Grabación lista · ${this.formatDuration(durationSeconds)}`;
     if (wavUrl) {
       this.el.dlWav.href = wavUrl;
       this.el.dlWav.classList.remove("hidden");
     } else {
       this.el.dlWav.classList.add("hidden");
     }
+  }
+
+  formatDuration(seconds) {
+    const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+    const s = Math.floor(seconds % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
   }
 }

@@ -94,6 +94,11 @@ html, body {
 .brand { font-size: 1.4rem; margin: 0; letter-spacing: -0.01em; }
 .privacy-inline { color: var(--muted); font-size: 0.8rem; margin: 0; }
 .diagnostics { color: var(--muted); font-size: 0.74rem; font-variant-numeric: tabular-nums; }
+.session-status {
+  color: var(--accent); font-size: 0.74rem; font-weight: 700;
+  padding: 4px 8px; border: 1px solid rgba(94, 230, 197, 0.35); border-radius: 999px;
+}
+.session-status.error { color: var(--danger); border-color: rgba(255, 90, 106, 0.45); }
 .session-controls, .config-actions, .creative-actions {
   display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
 }
@@ -167,10 +172,17 @@ html, body {
 
 /* --- Controles ------------------------------------------------------------- */
 .controls {
-  display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px;
   margin-top: 20px; padding: 16px 18px;
   background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
 }
+.control-group { display: grid; gap: 10px; }
+.control-group-title {
+  margin: 0; color: var(--muted); font-size: 0.67rem; font-weight: 800;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.control-group-items { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+.control-group-utility { min-width: min(100%, 300px); padding-left: 16px; border-left: 1px solid var(--border); }
 .control { display: flex; flex-direction: column; gap: 6px; }
 .control > label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
 .preset-description {
@@ -209,6 +221,7 @@ select {
   font-weight: 700;
   cursor: pointer;
 }
+.performance-summary { color: var(--muted); font-size: 0.74rem; font-weight: 500; margin-left: 8px; }
 .config-intro, .config-description, .config-status {
   color: var(--muted);
   font-size: 0.78rem;
@@ -228,6 +241,13 @@ select {
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
+.technique-help {
+  display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap;
+  margin-top: 14px; padding: 10px 14px; border-left: 3px solid var(--accent);
+  background: rgba(94, 230, 197, 0.07); border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--muted); font-size: 0.8rem; line-height: 1.4;
+}
+.technique-help strong { color: var(--text); }
 .documentation-heading {
   display: flex;
   align-items: end;
@@ -369,6 +389,10 @@ select {
 .calibration-dialog::backdrop { background: rgba(0, 0, 0, 0.72); }
 @media (max-width: 760px) { .creative-tools { grid-template-columns: 1fr; } }
 @media (max-width: 760px) {
+  .controls { grid-template-columns: 1fr; }
+  .control-group-utility { order: -1; padding: 0 0 14px; border: 0; border-bottom: 1px solid var(--border); }
+  .rec { min-width: 0; }
+  .performance-summary { display: block; margin: 4px 22px 0 0; }
   .config-grid { grid-template-columns: 1fr; }
   .config-wide { grid-column: auto; }
   .documentation-heading { align-items: start; flex-direction: column; }
@@ -377,12 +401,12 @@ select {
   .documentation-card { min-height: 132px; }
 }
 
-.rec { margin-left: auto; }
+.rec { min-width: 270px; }
 .rec-row { display: flex; align-items: center; gap: 10px; }
 .rec-btn {
-  width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--border);
-  background: var(--panel-2); color: var(--danger); font-size: 1.1rem; cursor: pointer;
-  display: grid; place-items: center; transition: all 0.15s ease;
+  min-height: 42px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--panel-2); color: var(--danger); font-size: 0.9rem; font-weight: 700; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px; padding: 9px 13px; transition: all 0.15s ease;
 }
 .rec-btn:hover { border-color: var(--danger); }
 .rec-btn.recording { background: var(--danger); color: #fff; border-color: var(--danger); animation: pulse 1.2s infinite; }

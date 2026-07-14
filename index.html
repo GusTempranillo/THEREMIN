@@ -30,6 +30,7 @@
       <h2 class="brand">Theremin <span class="accent">Web</span></h2>
       <p class="privacy-inline">🔒 Vídeo 100% on-device · nunca se sube nada.</p>
       <span id="diagnostics" class="diagnostics">FPS — · latencia —</span>
+      <span id="sessionStatus" class="session-status" role="status">Preparando sesión</span>
       <div class="session-controls">
         <select id="cameraSelect" aria-label="Cámara"></select>
         <button id="restartBtn" type="button">Reiniciar sesión</button>
@@ -78,7 +79,14 @@
     </section>
 
     <!-- Controles -->
-    <section class="controls">
+    <aside class="technique-help" aria-label="Ayuda de interpretación">
+      <strong id="techniqueHelpTitle">Modo Clásico</strong>
+      <span id="techniqueHelpText">Mano derecha: tono vertical. Mano izquierda: volumen mediante la pinza.</span>
+    </aside>
+    <section class="controls" aria-label="Controles del instrumento">
+      <div class="control-group control-group-performance">
+        <p class="control-group-title">Interpretación y sonido</p>
+        <div class="control-group-items">
       <div class="control">
         <label>Modo</label>
         <div class="seg" id="modeToggle" role="group">
@@ -121,11 +129,17 @@
         <label for="reverbRange">Reverb</label>
         <input id="reverbRange" type="range" min="0" max="100" value="12" />
       </div>
+        </div>
+      </div>
 
-      <div class="control rec">
+      <div class="control-group control-group-utility">
+        <p class="control-group-title">Utilidades</p>
+        <div class="control rec">
         <label>Grabación</label>
         <div class="rec-row">
-          <button id="recBtn" class="rec-btn" title="Grabar audio">●</button>
+          <button id="recBtn" class="rec-btn" title="Grabar audio">
+            <span id="recIcon" aria-hidden="true">●</span><span id="recLabel">Grabar</span>
+          </button>
           <span id="recTimer" class="rec-timer">00:00</span>
         </div>
         <span id="recStatus" class="rec-status"></span>
@@ -137,10 +151,11 @@
           </div>
         </section>
       </div>
+      </div>
     </section>
 
     <details class="performance-config">
-      <summary>Configuración interpretativa</summary>
+      <summary>Configuración interpretativa <span id="performanceSummary" class="performance-summary"></span></summary>
       <p class="config-intro">
         Ajustes del modo Clásico. Los perfiles históricos fijan extensión y
         velocidad de respuesta. El tono siempre recorre la cámara en vertical:
