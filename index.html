@@ -79,10 +79,6 @@
     </section>
 
     <!-- Controles -->
-    <aside class="technique-help" aria-label="Ayuda de interpretación">
-      <strong id="techniqueHelpTitle">Modo Clásico</strong>
-      <span id="techniqueHelpText">Mano derecha: tono vertical. Mano izquierda: volumen mediante la pinza.</span>
-    </aside>
     <section class="controls" aria-label="Controles del instrumento">
       <div class="control-group control-group-performance">
         <p class="control-group-title">Interpretación y sonido</p>
@@ -98,15 +94,12 @@
       <div class="control">
         <label for="soundPresetSelect">Sonido</label>
         <select id="soundPresetSelect">
-          <option value="rca">Clásico — RCA/Rockmore</option>
-          <option value="rockmore" selected>Theremin clásico de concierto — Rockmore</option>
-          <option value="cabinet1929">RCA + Cabinet 1929</option>
-          <option value="scifi">Ciencia ficción moderna</option>
-          <option value="experimental">Órbita prismática — experimental</option>
+          <option value="rca" title="Grave de cello, medio vocal y agudo casi sinusoidal.">Clásico — RCA/Rockmore</option>
+          <option value="rockmore" selected title="Voz Rockmore vocal y cálida, altavoz de época y sala de concierto discreta.">Theremin clásico de concierto — Rockmore</option>
+          <option value="cabinet1929" title="Voz RCA a través de amplificador, altavoz y caja modelados.">RCA + Cabinet 1929</option>
+          <option value="scifi" title="Pulso brillante, vibrato retardado, hall y eco espacial.">Ciencia ficción moderna</option>
+          <option value="experimental" title="Voz hueca con quinta, octava flotante, movimiento tímbrico lento y eco musical.">Órbita prismática — experimental</option>
         </select>
-        <span id="presetDescription" class="preset-description" aria-live="polite">
-          Voz Rockmore vocal y cálida, altavoz de época y sala de concierto discreta.
-        </span>
       </div>
 
       <div class="control">

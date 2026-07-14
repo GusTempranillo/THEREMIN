@@ -127,7 +127,6 @@ async function onStart() {
     engine.setReverbAmount(persistedSettings.reverb ?? preset.reverb);
     engine.setCabinetEnabled(Boolean(persistedSettings.cabinetEnabled), true);
     ui.el.reverbRange.value = String(Math.round((persistedSettings.reverb ?? preset.reverb) * 100));
-    ui.setPresetDescription(preset.description);
 
     // Grabación (solo audio) desde la mezcla maestra.
     recorder = new AudioRecorder(engine.recordDestination.stream);
@@ -427,7 +426,6 @@ function wireControls() {
     persistedSettings.cabinetEnabled = Boolean(preset.cabinet);
     engine.setCabinetEnabled(persistedSettings.cabinetEnabled);
     ui.el.reverbRange.value = String(Math.round(preset.reverb * 100));
-    ui.setPresetDescription(preset.description);
     persistCurrentSettings();
   });
   ui.el.reverbRange.addEventListener("input", (e) => {
@@ -642,7 +640,6 @@ function updateContextualUi() {
   }[state.performancePreset] ?? "Perfil";
   const scaleLabel = ui.el.scaleSelect.options[ui.el.scaleSelect.selectedIndex]?.textContent ?? "Libre";
   ui.setPerformanceSummary(`${modeLabel} · ${soundLabel} · ${performanceLabel} · ${scaleLabel}`);
-  ui.setTechniqueHelp(state.mode);
 }
 
 const CALIBRATION_STEPS = [

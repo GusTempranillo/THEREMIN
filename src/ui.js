@@ -40,7 +40,6 @@ export class UI {
       scaleSelect: document.getElementById("scaleSelect"),
       tonicSelect: document.getElementById("tonicSelect"),
       soundPresetSelect: document.getElementById("soundPresetSelect"),
-      presetDescription: document.getElementById("presetDescription"),
       reverbRange: document.getElementById("reverbRange"),
       performancePresetSelect: document.getElementById("performancePresetSelect"),
       pitchMinHz: document.getElementById("pitchMinHz"),
@@ -142,19 +141,7 @@ export class UI {
     this.el.sessionStatus.classList.toggle("error", isError);
   }
 
-  setTechniqueHelp(mode) {
-    const classic = mode === "classic";
-    document.getElementById("techniqueHelpTitle").textContent = classic ? "Modo Clásico" : "Modo Dúo";
-    document.getElementById("techniqueHelpText").textContent = classic
-      ? "Mano derecha: tono vertical. Mano izquierda: volumen mediante la pinza."
-      : "Cada mano controla una voz; la pinza de cada una regula su volumen.";
-  }
-
   setPerformanceSummary(text) { this.el.performanceSummary.textContent = text || ""; }
-
-  setPresetDescription(text) {
-    this.el.presetDescription.textContent = text || "";
-  }
 
   setPerformancePanel(presetKey, preset) {
     this.el.performancePresetSelect.value = presetKey;
