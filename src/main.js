@@ -185,6 +185,18 @@ async function restartApp() {
   await onStart();
 }
 
+async function restartSession() {
+  const shouldResetSettings = window.confirm(
+    "¿También quieres restablecer los ajustes predeterminados?\n\nAceptar: reiniciar y restablecer ajustes.\nCancelar: reiniciar solo la sesión."
+  );
+  if (shouldResetSettings) {
+    resetSettings();
+    window.location.reload();
+    return;
+  }
+  await restartApp();
+}
+
 // --- Bucle por frame (callback de detección) ---------------------------------
 function onHands(hands, frameInfo = {}) {
   lastTrackingCallbackWallTime = performance.now();
@@ -366,7 +378,7 @@ function processClassic(hands, t, dt) {
 // --- Controles ---------------------------------------------------------------
 function wireControls() {
   ui.el.stopBtn.addEventListener("click", () => stopApp({ showStart: true }));
-  ui.el.restartBtn.addEventListener("click", restartApp);
+  ui.el.restartBtn.addEventListener("click", restartSession);
   ui.el.cameraSelect.addEventListener("change", async (event) => {
     if (!tracking) return;
     trackingTimedOut = true;
