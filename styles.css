@@ -213,6 +213,7 @@ select {
   font-weight: 700;
   cursor: pointer;
 }
+.performance-config[open] summary { margin-bottom: 14px; }
 .performance-summary { color: var(--muted); font-size: 0.74rem; font-weight: 500; margin-left: 8px; }
 .config-intro, .config-description, .config-status {
   color: var(--muted);
