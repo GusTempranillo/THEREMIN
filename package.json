@@ -1,5 +1,6 @@
 {
   "name": "theremin-web-3",
+  "author": "Gustavo Pérez Tempranillo",
   "private": true,
   "type": "module",
   "scripts": {

@@ -249,3 +249,7 @@ vídeo.
   adecuado, el botón de grabar se desactiva con un mensaje.
 - En móvil, si el navegador soporta la **Web Share API** para archivos, aparece
   un botón **Compartir** junto a la descarga.
+
+## Autor
+
+Creado por **Gustavo Pérez Tempranillo**.
