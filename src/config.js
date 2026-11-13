@@ -10,7 +10,7 @@
 // --- Versión de MediaPipe Tasks Vision (FIJADA, nunca @latest en producción) ---
 export const MEDIAPIPE_VERSION = "0.10.35";
 export const WASM_BASE_URL =
-  `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`;
+  new URL("../vendor/mediapipe/wasm", import.meta.url).href;
 export const HAND_MODEL_URL =
   new URL("../assets/hand_landmarker.task", import.meta.url).href;
 

@@ -6,11 +6,14 @@
 // "derecha" REALES del usuario (corrigiendo la lateralidad por el espejado).
 // =============================================================================
 
-// NOTA: la URL del módulo debe ser un literal de cadena estático (los import
-// estáticos no admiten variables). La versión 0.10.35 está fijada también en
+// El bundle se sirve desde el propio sitio para que un VPS no dependa de un
+// CDN externo durante el arranque. La versión 0.10.35 queda fijada también en
 // config.js (MEDIAPIPE_VERSION); mantener ambas sincronizadas.
 const MEDIAPIPE_VERSION = "0.10.35";
-const MP_BUNDLE = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/vision_bundle.mjs`;
+const MP_BUNDLE = new URL(
+  "../vendor/mediapipe/vision_bundle.mjs",
+  import.meta.url
+).href;
 
 import { WASM_BASE_URL, HAND_MODEL_URL } from "./config.js";
 
