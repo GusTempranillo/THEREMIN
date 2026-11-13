@@ -102,6 +102,12 @@ async function onStart() {
   if (state.started) return;
   ui.el.startBtn.disabled = true;
   try {
+    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+      throw new Error(
+        "La cámara necesita una conexión HTTPS válida (o localhost)."
+      );
+    }
+
     ui.setStartStatus("Iniciando audio…");
     ui.setSessionStatus("Iniciando audio…");
     engine = new AudioEngine();
@@ -109,14 +115,16 @@ async function onStart() {
     await engine.setupVoices();
     applyPerformanceConfig(false);
 
-    ui.setStartStatus("Cargando modelo de manos…");
-    ui.setSessionStatus("Cargando seguimiento…");
-    tracking = new HandTracking(ui.video);
-    await tracking.init();
-
+    // Pedir la cámara antes de descargar MediaPipe evita que una incidencia
+    // de CDN/modelo parezca un bucle sin solicitud de permiso.
     ui.setStartStatus("Pidiendo cámara…");
     ui.setSessionStatus("Solicitando cámara…");
+    tracking = new HandTracking(ui.video);
     await tracking.startCamera(persistedSettings.cameraDeviceId);
+
+    ui.setStartStatus("Cargando modelo de manos…");
+    ui.setSessionStatus("Cargando seguimiento…");
+    await tracking.init();
     const cameras = await tracking.listCameras();
     const activeDevice = tracking.stream?.getVideoTracks()?.[0]?.getSettings()?.deviceId ?? "";
     ui.setCameras(cameras, activeDevice);
@@ -146,14 +154,35 @@ async function onStart() {
     window.addEventListener("resize", () => ui.resizeCanvas());
   } catch (err) {
     console.error(err);
+    tracking?.close();
+    tracking = null;
+    await engine?.close();
+    engine = null;
     ui.setStartStatus(
-      err && err.name === "NotAllowedError"
-        ? "Permiso de cámara denegado. Habilítalo y recarga."
-        : `Error al iniciar: ${err?.message ?? err}`,
+      startupErrorMessage(err),
       true
     );
     ui.setSessionStatus("No se pudo iniciar la sesión", true);
     ui.el.startBtn.disabled = false;
+  }
+}
+
+function startupErrorMessage(error) {
+  switch (error?.name) {
+    case "NotAllowedError":
+      return "El navegador ha bloqueado la cámara. Permítela para este sitio y recarga.";
+    case "NotFoundError":
+      return "No se ha encontrado ninguna webcam disponible.";
+    case "NotReadableError":
+      return "La webcam está ocupada por otra aplicación o no responde.";
+    case "OverconstrainedError":
+      return "La webcam no admite la configuración solicitada.";
+    case "SecurityError":
+      return "El navegador no permite usar la webcam desde este sitio.";
+    default:
+      return error?.message
+        ? `No se pudo iniciar la cámara: ${error.message}`
+        : "No se pudo iniciar la cámara. Comprueba HTTPS y los permisos del sitio.";
   }
 }
 
