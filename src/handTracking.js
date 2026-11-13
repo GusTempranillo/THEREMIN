@@ -50,10 +50,11 @@ export class HandTracking {
       15000,
       "MediaPipe no ha podido cargar el motor WASM local."
     );
+    const modelAssetBuffer = await loadModelAsset(HAND_MODEL_URL);
     const options = {
       // CPU es la ruta más compatible entre navegadores y VPS. La ruta GPU
       // puede quedarse esperando al crear el contexto en algunos entornos.
-      baseOptions: { modelAssetPath: HAND_MODEL_URL, delegate: "CPU" },
+      baseOptions: { modelAssetBuffer, delegate: "CPU" },
       numHands: 2,
       runningMode: "VIDEO",
       minHandDetectionConfidence: 0.5,
@@ -297,6 +298,29 @@ export class HandTracking {
       y += landmarks[idx].y;
     }
     return { x: x / PALM_LANDMARKS.length, y: y / PALM_LANDMARKS.length };
+  }
+}
+
+async function loadModelAsset(url) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) {
+      throw new Error(`El modelo de manos no responde (HTTP ${response.status}).`);
+    }
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    if (bytes.byteLength < 1000000) {
+      throw new Error("El archivo del modelo de manos está incompleto.");
+    }
+    return bytes;
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw new Error("La descarga local del modelo de manos ha agotado el tiempo.");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
