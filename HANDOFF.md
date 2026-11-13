@@ -16,8 +16,8 @@ El siguiente modelo debe revisar primero el código real de `src/` y conservar l
 
 ### Motor de sonido actualizado
 
-- El arranque de fábrica es `Clásico` + `Libre` + `Rockmore` + Cabinet 1929,
-  sala de concierto al 12 % y extensión completa Do1–Do7. El selector conserva
+- El arranque de fábrica es `Dúo` + `Mayor` + `Ciencia ficción moderna`.
+  El selector conserva
   Do2–Do7 como rango Rockmore estable de cinco octavas.
 - `Clásico — RCA/Rockmore`: siete `PeriodicWave` (Do1–Do7) band-limited interpoladas por
   registro, saturación asimétrica, formantes suaves y pérdida progresiva de
@@ -122,7 +122,7 @@ THEREMIN3/
 ## Funciones actuales
 
 - Modo Dúo: cada mano controla una voz independiente.
-- Modo Clásico por defecto: derecha controla tono vertical y la izquierda volumen.
+- Modo Dúo por defecto: cada mano controla su propia voz y volumen.
 - Extensión inicial completa: Do1–Do7; Rockmore estable: Do2–Do7.
 - Rangos: izquierda C2–C4; derecha C4–C6.
 - Escalas: Libre, Cromática, Pentatónica, Mayor y menor.

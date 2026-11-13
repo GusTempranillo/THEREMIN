@@ -172,7 +172,7 @@ export const SOUND_PRESETS = {
   },
 };
 
-export const DEFAULT_SOUND_PRESET = "rockmore";
+export const DEFAULT_SOUND_PRESET = "scifi";
 
 // --- Notas (español) y constantes de afinación -------------------------------
 export const NOTE_NAMES_ES = [

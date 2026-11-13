@@ -34,14 +34,16 @@ buscando un timbre cálido y expresivo cercano a un theremin analógico.
 | Mano **derecha** | Rango **agudo** (C4–C6) |
 | Mano **izquierda** | Rango **grave** (C2–C4) |
 
-- **Modo Clásico** (por defecto): una sola voz. Mano derecha = tono vertical;
+- **Modo Dúo** (por defecto): cada mano es una voz independiente (tono + volumen).
+- **Modo Clásico**: una sola voz. Mano derecha = tono vertical;
   mano izquierda = volumen según su altura. La dirección no se configura:
   arriba siempre es agudo y abajo siempre es grave.
-- **Modo Dúo**: cada mano es una voz independiente (tono + volumen).
-- **Escala**: **Libre** (por defecto) · Cromática · Pentatónica · Mayor · menor,
+- **Escala**: **Mayor** (por defecto) · Libre · Cromática · Pentatónica · menor,
   con **tónica** seleccionable (Do por defecto).
 - **Sonido**:
-  - **Theremin clásico de concierto — Rockmore** (por defecto): perfil vocal,
+  - **Ciencia ficción moderna** (por defecto): pulso brillante, vibrato retardado,
+    hall y eco espacial.
+  - **Theremin clásico de concierto — Rockmore**: perfil vocal,
     cabinet de época, vibrato exclusivamente manual y sala discreta sin eco.
   - **Clásico — RCA/Rockmore:** banco de ondas interpoladas por registro;
     grave rico tipo cello, medio vocal y agudo progresivamente sinusoidal.
@@ -49,8 +51,6 @@ buscando un timbre cálido y expresivo cercano a un theremin analógico.
   - **RCA + Cabinet 1929:** la misma voz mediante un modelo de amplificador,
     altavoz electrodinámico y caja. Es una aproximación DSP hasta disponer de
     una respuesta al impulso medida de un RCA 106 real.
-  - **Ciencia ficción moderna:** pulso redondeado brillante, vibrato retardado,
-    hall con pre-delay y eco amortiguado.
   - **Órbita prismática:** perfil experimental con espectro hueco, quinta y
     octava flotantes, modulación tímbrica lenta y eco musical. Permanece
     afinable y sensible a la dinámica de las manos.

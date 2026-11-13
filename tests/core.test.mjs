@@ -42,11 +42,11 @@ test("historical performance ranges map their calibrated endpoints", () => {
   }
 });
 
-test("factory defaults open as a full-range classic concert theremin", () => {
-  assert.equal(DEFAULT_SOUND_PRESET, "rockmore");
+test("factory defaults open as a duo science-fiction theremin in major", () => {
+  assert.equal(DEFAULT_SOUND_PRESET, "scifi");
   assert.equal(DEFAULT_PERFORMANCE_PRESET, "concertFull");
-  assert.equal(DEFAULT_SETTINGS.mode, "classic");
-  assert.equal(DEFAULT_SETTINGS.scale, "free");
+  assert.equal(DEFAULT_SETTINGS.mode, "duo");
+  assert.equal(DEFAULT_SETTINGS.scale, "major");
   assert.equal(DEFAULT_SETTINGS.cabinetEnabled, true);
   assert.equal(DEFAULT_SETTINGS.reverb, 0.12);
   assert.ok(Math.abs(DEFAULT_SETTINGS.pitch.minHz - 32.70319566) < 1e-8);
@@ -83,8 +83,8 @@ test("v4 migration rejects horizontal pitch calibration but preserves safe data"
     pitch: { axis: "x", inputLow: 0.2, inputHigh: 0.8 },
     volumeCalibration: { silent: 0.1, loud: 0.9 },
   });
-  assert.equal(migrated.soundPreset, "rockmore");
-  assert.equal(migrated.mode, "classic");
+  assert.equal(migrated.soundPreset, "scifi");
+  assert.equal(migrated.mode, "duo");
   assert.equal(migrated.cameraDeviceId, "camera-2");
   assert.equal(migrated.trainingEnabled, true);
   assert.equal(migrated.pitch.inputLow, 0);

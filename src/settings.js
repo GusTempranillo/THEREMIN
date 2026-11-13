@@ -6,10 +6,10 @@ const STORAGE_KEY = "theremin-web:settings:v5";
 const LEGACY_STORAGE_KEYS = ["theremin-web:settings:v4"];
 
 export const DEFAULT_SETTINGS = Object.freeze({
-  soundPreset: "rockmore",
+  soundPreset: "scifi",
   performancePreset: "concertFull",
-  mode: "classic",
-  scale: "free",
+  mode: "duo",
+  scale: "major",
   tonicPc: 0,
   reverb: 0.12,
   pitch: {
