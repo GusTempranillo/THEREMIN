@@ -124,7 +124,11 @@ async function onStart() {
 
     ui.setStartStatus("Cargando modelo de manos…");
     ui.setSessionStatus("Cargando seguimiento…");
-    await tracking.init();
+    await withTimeout(
+      tracking.init(),
+      30000,
+      "La carga del modelo de manos está tardando demasiado. Comprueba la conexión del sitio."
+    );
     const cameras = await tracking.listCameras();
     const activeDevice = tracking.stream?.getVideoTracks()?.[0]?.getSettings()?.deviceId ?? "";
     ui.setCameras(cameras, activeDevice);
@@ -179,11 +183,25 @@ function startupErrorMessage(error) {
       return "La webcam no admite la configuración solicitada.";
     case "SecurityError":
       return "El navegador no permite usar la webcam desde este sitio.";
+    case "TimeoutError":
+      return error.message;
     default:
       return error?.message
         ? `No se pudo iniciar la cámara: ${error.message}`
         : "No se pudo iniciar la cámara. Comprueba HTTPS y los permisos del sitio.";
   }
+}
+
+function withTimeout(promise, timeoutMs, message) {
+  let timeoutId;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => {
+      const error = new Error(message);
+      error.name = "TimeoutError";
+      reject(error);
+    }, timeoutMs);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
 }
 
 async function stopApp({ showStart = false } = {}) {

@@ -12,7 +12,7 @@ export const MEDIAPIPE_VERSION = "0.10.35";
 export const WASM_BASE_URL =
   `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`;
 export const HAND_MODEL_URL =
-  "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
+  new URL("../assets/hand_landmarker.task", import.meta.url).href;
 
 // --- Filtro One Euro (suavizado de entrada: jitter vs latencia) --------------
 // minCutoff bajo => más suavizado en reposo (mata el temblor al sostener nota).
