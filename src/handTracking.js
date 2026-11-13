@@ -40,25 +40,31 @@ export class HandTracking {
 
   // Crea el HandLandmarker (descarga WASM + modelo). Llamar una sola vez.
   async init() {
-    const { FilesetResolver, HandLandmarker } = await import(MP_BUNDLE);
-    const vision = await FilesetResolver.forVisionTasks(WASM_BASE_URL);
+    const { FilesetResolver, HandLandmarker } = await withTimeout(
+      import(MP_BUNDLE),
+      10000,
+      "MediaPipe no ha podido cargar su módulo local."
+    );
+    const vision = await withTimeout(
+      FilesetResolver.forVisionTasks(WASM_BASE_URL),
+      15000,
+      "MediaPipe no ha podido cargar el motor WASM local."
+    );
     const options = {
-      baseOptions: { modelAssetPath: HAND_MODEL_URL, delegate: "GPU" },
+      // CPU es la ruta más compatible entre navegadores y VPS. La ruta GPU
+      // puede quedarse esperando al crear el contexto en algunos entornos.
+      baseOptions: { modelAssetPath: HAND_MODEL_URL, delegate: "CPU" },
       numHands: 2,
       runningMode: "VIDEO",
       minHandDetectionConfidence: 0.5,
       minHandPresenceConfidence: 0.5,
       minTrackingConfidence: 0.5,
     };
-    try {
-      this.landmarker = await HandLandmarker.createFromOptions(vision, options);
-    } catch (gpuError) {
-      console.warn("GPU no disponible; usando CPU", gpuError);
-      this.landmarker = await HandLandmarker.createFromOptions(vision, {
-        ...options,
-        baseOptions: { modelAssetPath: HAND_MODEL_URL, delegate: "CPU" },
-      });
-    }
+    this.landmarker = await withTimeout(
+      HandLandmarker.createFromOptions(vision, options),
+      15000,
+      "MediaPipe no ha podido inicializar el modelo de manos."
+    );
   }
 
   // Pide la cámara y empieza a reproducir el vídeo (sin audio).
@@ -292,4 +298,12 @@ export class HandTracking {
     }
     return { x: x / PALM_LANDMARKS.length, y: y / PALM_LANDMARKS.length };
   }
+}
+
+function withTimeout(promise, timeoutMs, message) {
+  let timeoutId;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(message)), timeoutMs);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
 }

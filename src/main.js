@@ -186,6 +186,7 @@ function startupErrorMessage(error) {
     case "TimeoutError":
       return error.message;
     default:
+      if (error?.message?.startsWith("MediaPipe")) return error.message;
       return error?.message
         ? `No se pudo iniciar la cámara: ${error.message}`
         : "No se pudo iniciar la cámara. Comprueba HTTPS y los permisos del sitio.";
